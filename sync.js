@@ -188,6 +188,7 @@
       .catch(function (err) {
         setOverlayBusy(false);
         var code = err && err.code;
+        console.error("[GSC Sync] Sign-in error:", code, err);
         if (code === "auth/network-request-failed") {
           setOverlayError(
             "No internet connection. Connect once to unlock this device — after that it stays unlocked."
@@ -209,8 +210,10 @@
         : { deleted: false, value: value, ts: ts, serverTs: FB.serverTimestamp() };
     localStorage.setItem(META_PREFIX + key, String(ts));
     setPillState(navigator.onLine === false ? "offline" : "syncing");
-    FB.setDoc(ref, payload).catch(function () {
-      // Firestore's offline persistence already queued this; nothing to do.
+    FB.setDoc(ref, payload).catch(function (err) {
+      // Firestore's offline persistence normally queues this silently when
+      // truly offline — but log it so a permissions/rules problem is visible.
+      console.error("[GSC Sync] Write failed for", key, ":", err && err.code, err);
     });
   }
 
@@ -268,7 +271,8 @@
         if (sawChange) showUpdateBanner();
         setPillState(navigator.onLine === false ? "offline" : "synced");
       },
-      function () {
+      function (err) {
+        console.error("[GSC Sync] Firestore listener error:", err && err.code, err);
         setPillState("offline");
       }
     );
@@ -288,7 +292,7 @@
       auth = FB.getAuth(fbApp);
       try {
         db = FB.initializeFirestore(fbApp, {
-          localCache: FB.persistentLocalCache({ tabManager: FB.persistentSingleTabManager({}) }),
+          localCache: FB.persistentLocalCache({ tabManager: FB.persistentMultipleTabManager({}) }),
         });
       } catch (e) {
         // Firestore already initialized (hot reload / duplicate script), or this
@@ -318,9 +322,10 @@
             showOverlay();
           }
         },
-        function () {
+        function (err) {
           // Auth state listener itself errored (e.g. no IndexedDB at all) —
           // degrade to "no sync", but never block the app.
+          console.error("[GSC Sync] Auth listener error:", err && err.code, err);
           setPillState("error");
           hideOverlay();
         }
@@ -328,6 +333,7 @@
     } catch (e) {
       // Any unexpected Firebase init failure: the sheep records already live
       // safely in localStorage, so never let a sync problem block the app.
+      console.error("[GSC Sync] Firebase init failed:", e);
       setPillState("error");
       hideOverlay();
     }
