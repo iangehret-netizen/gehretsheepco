@@ -1,8 +1,10 @@
-const CACHE_NAME = "gsc-app-v6";
+const CACHE_NAME = "gsc-app-v8";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
   "./bundle.js",
+  "./firebase-vendor.js",
+  "./sync.js",
   "./tailwind.css",
   "./manifest.json",
   "./apple-touch-icon.png",

@@ -28,6 +28,10 @@
 </head>
 <body>
   <div id="root"></div>
+  <!-- Bundled locally (no CDN) so cross-device sync still works after the first
+       load even with no internet connection; see sync.js for how it's used. -->
+  <script src="./firebase-vendor.js"></script>
+  <script src="./sync.js"></script>
   <script src="./bundle.js"></script>
   <script>
     // Registers the service worker so the app shell (HTML/CSS/JS/icons) is cached
