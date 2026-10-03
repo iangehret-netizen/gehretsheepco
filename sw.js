@@ -1,4 +1,4 @@
-const CACHE_NAME = "gsc-app-v30";
+const CACHE_NAME = "gsc-app-v33";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
