@@ -24,12 +24,55 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <style>
     html, body, #root { margin: 0; padding: 0; min-height: 100vh; }
+    /* Cover screen (shown once per day, then skipped) */
+    #gsc-cover { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px; padding: 24px; box-sizing: border-box; background: radial-gradient(ellipse at 50% 38%, #2A251C 0%, #1B1B1B 55%, #121110 100%); transition: opacity .45s ease; }
+    #gsc-cover.gsc-hide { opacity: 0; pointer-events: none; }
+    #gsc-cover img { width: min(84vw, 560px); height: auto; display: block; }
+    #gsc-cover button { font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #1B1B1B; background: linear-gradient(180deg, #E4CC96, #B8963F); border: 0; border-radius: 999px; padding: 15px 56px; min-height: 48px; cursor: pointer; box-shadow: 0 6px 22px rgba(0,0,0,.45); }
+    #gsc-cover button:active { transform: scale(.97); }
+
   </style>
 </head>
 <body>
+  <div id="gsc-cover" style="display:none">
+    <img src="./logo-cover.png" alt="Gehret Sheep Co." />
+    <button id="gsc-cover-open" type="button">Open</button>
+  </div>
+  <script>
+    // Cover shows on the first open of each day. Only a UI convenience:
+    // if storage is unavailable it simply shows every time.
+    (function () {
+      var el = document.getElementById("gsc-cover");
+      var today = new Date();
+      var key = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+      var seen = false;
+      try { seen = localStorage.getItem("gsc:cover:day") === key; } catch (e) {}
+      if (seen) { el.parentNode.removeChild(el); return; }
+      el.style.display = "flex";
+      document.getElementById("gsc-cover-open").addEventListener("click", function () {
+        try { localStorage.setItem("gsc:cover:day", key); } catch (e) {}
+        el.className = "gsc-hide";
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500);
+      });
+    })();
+  </script>
   <div id="root"></div>
   <!-- Bundled locally (no CDN) so cross-device sync still works after the first
        load even with no internet connection; see sync.js for how it's used. -->
+  <script>
+    // PDF packet builder loads only when Generate PDF is tapped (keeps app start fast).
+    window.gscLoadPdf = function () {
+      if (window.gscExportPacket) return Promise.resolve();
+      function load(src) {
+        return new Promise(function (res, rej) {
+          var s = document.createElement("script");
+          s.src = src; s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+      return load("./jspdf.umd.min.js").then(function () { return load("./pdfpacket.js"); });
+    };
+  </script>
   <script src="./firebase-vendor.js"></script>
   <script src="./sync.js"></script>
   <script src="./bundle.js"></script>
