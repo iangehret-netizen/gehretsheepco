@@ -61,16 +61,21 @@
        load even with no internet connection; see sync.js for how it's used. -->
   <script>
     // PDF packet builder loads only when Generate PDF is tapped (keeps app start fast).
+    function gscLoad(src) {
+      return new Promise(function (res, rej) {
+        var s = document.createElement("script");
+        s.src = src; s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    // Excel export needs only the section builder.
+    window.gscLoadPacket = function () {
+      if (window.gscSheets) return Promise.resolve();
+      return gscLoad("./pdfpacket.js");
+    };
     window.gscLoadPdf = function () {
-      if (window.gscExportPacket) return Promise.resolve();
-      function load(src) {
-        return new Promise(function (res, rej) {
-          var s = document.createElement("script");
-          s.src = src; s.onload = res; s.onerror = rej;
-          document.head.appendChild(s);
-        });
-      }
-      return load("./jspdf.umd.min.js").then(function () { return load("./pdfpacket.js"); });
+      var a = window.jspdf ? Promise.resolve() : gscLoad("./jspdf.umd.min.js");
+      return a.then(function () { return window.gscSheets ? null : gscLoad("./pdfpacket.js"); });
     };
   </script>
   <script src="./firebase-vendor.js"></script>
