@@ -1,253 +1,1391 @@
 {
- "2024": [
-  {
-   "n": [
-    "lil debbie"
-   ],
-   "w": [
-    [
-     "2024-03-02",
-     67
+ "2023": {
+  "f": [
+   {
+    "n": [
+     "ivy"
     ],
-    [
-     "2024-04-20",
-     89
-    ],
-    [
-     "2024-05-12",
-     95
-    ],
-    [
-     "2024-06-15",
-     107
-    ],
-    [
-     "2024-06-30",
-     114
+    "d": "2023-07-29",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "20",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "eileen"
-   ],
-   "add": {
-    "name": "Eileen",
-    "sex": "Ewe Lamb",
-    "lEar": "",
-    "rEar": "OH128420044",
-    "birthdate": "2022-12-01",
-    "breed": "Cross",
-    "sire": "How High",
-    "dam": "Mo Betty",
-    "breeder": "Gehret/Stickley",
-    "price": "Lease",
-    "showman": "Ellen Getz",
-    "county": "",
-    "notes": "",
-    "inBarn": false,
-    "targetWeight": "",
-    "targetDate": ""
    },
-   "w": [
-    [
-     "2024-03-02",
-     125
+   {
+    "n": [
+     "raven"
     ],
-    [
-     "2024-04-20",
-     153.2
-    ],
-    [
-     "2024-05-12",
-     159
+    "d": "2023-07-29",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "2",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "randall"
-   ],
-   "w": [
-    [
-     "2024-03-02",
-     73.2
+   },
+   {
+    "n": [
+     "smoney",
+     "schmoney",
+     "shmoney"
     ],
-    [
-     "2024-04-20",
-     83.5
-    ],
-    [
-     "2024-05-12",
-     91
-    ],
-    [
-     "2024-06-02",
-     100
-    ],
-    [
-     "2024-06-15",
-     107
-    ],
-    [
-     "2024-06-30",
-     114
+    "d": "2023-07-29",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "5",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "maverick"
-   ],
-   "w": [
-    [
-     "2024-03-02",
-     81.4
+   },
+   {
+    "n": [
+     "ivy"
     ],
-    [
-     "2024-05-12",
-     113
-    ],
-    [
-     "2024-05-19",
-     116
+    "d": "2023-08-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "14",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "20",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Steam Rolled Barley"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "jean paul 2nd",
-    "john piere 2nd"
-   ],
-   "w": [
-    [
-     "2024-05-19",
-     100
+   },
+   {
+    "n": [
+     "raven"
+    ],
+    "d": "2023-08-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Steam Rolled Barley"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "bline sheep",
-    "bline sheep #2"
-   ],
-   "w": [
-    [
-     "2024-06-30",
-     130
+   },
+   {
+    "n": [
+     "smoney",
+     "schmoney",
+     "shmoney"
+    ],
+    "d": "2023-08-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "11",
+      "amt": "",
+      "product": "Formula Of Champions – Power Take Off (PTO)"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Steam Rolled Barley"
+     }
     ]
-   ]
-  }
- ],
- "2023": [
-  {
-   "n": [
-    "ivy"
-   ],
-   "w": [
-    [
-     "2023-04-15",
-     88
+   },
+   {
+    "n": [
+     "ivy"
     ],
-    [
-     "2023-05-22",
-     102.4
-    ],
-    [
-     "2023-06-03",
-     106.4
-    ],
-    [
-     "2023-06-24",
-     116
-    ],
-    [
-     "2023-07-22",
-     128
-    ],
-    [
-     "2023-08-06",
-     139
-    ],
-    [
-     "2023-08-13",
-     143
-    ],
-    [
-     "2023-09-23",
-     156
-    ],
-    [
-     "2023-10-26",
-     163
+    "d": "2023-09-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "14",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Steam Rolled Barley"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "raven"
-   ],
-   "w": [
-    [
-     "2023-07-22",
-     104
+   },
+   {
+    "n": [
+     "raven"
     ],
-    [
-     "2023-08-06",
-     110
-    ],
-    [
-     "2023-08-13",
-     114
-    ],
-    [
-     "2023-09-23",
-     116
-    ],
-    [
-     "2023-10-26",
-     115
+    "d": "2023-09-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "14",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Steam Rolled Barley"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Black Eyed Peas"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "smoney",
-    "schmoney"
-   ],
-   "w": [
-    [
-     "2023-08-13",
-     130
+   },
+   {
+    "n": [
+     "smoney",
+     "schmoney",
+     "shmoney"
     ],
-    [
-     "2023-09-23",
-     143
-    ],
-    [
-     "2023-10-26",
-     156
+    "d": "2023-09-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "11",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Steam Rolled Barley"
+     }
     ]
-   ]
-  },
-  {
-   "n": [
-    "eileen"
-   ],
-   "w": [
-    [
-     "2023-08-18",
-     98
+   },
+   {
+    "n": [
+     "eileen"
     ],
-    [
-     "2023-09-23",
-     114
-    ],
-    [
-     "2023-10-26",
-     128
+    "d": "2023-09-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "2",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Steam Rolled Barley"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Black Eyed Peas"
+     }
     ]
-   ]
-  }
- ]
+   },
+   {
+    "n": [
+     "ivy"
+    ],
+    "d": "2023-10-23",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "50",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Steam Rolled Barley"
+     }
+    ]
+   },
+   {
+    "n": [
+     "raven"
+    ],
+    "d": "2023-10-23",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "0",
+      "oz": "12",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "50",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Steam Rolled Barley"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Black Eyed Peas"
+     }
+    ]
+   },
+   {
+    "n": [
+     "smoney",
+     "schmoney",
+     "shmoney"
+    ],
+    "d": "2023-10-23",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "14",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Ultra Full"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Steam Rolled Barley"
+     }
+    ]
+   },
+   {
+    "n": [
+     "eileen"
+    ],
+    "d": "2023-10-23",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Ultra Full"
+     }
+    ]
+   }
+  ],
+  "w": []
+ },
+ "2024": {
+  "f": [
+   {
+    "n": [
+     "lil debbie",
+     "debbie downer",
+     "debbie"
+    ],
+    "d": "2024-02-17",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Hay"
+     }
+    ]
+   },
+   {
+    "n": [
+     "randall"
+    ],
+    "d": "2024-02-17",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Hay"
+     }
+    ]
+   },
+   {
+    "n": [
+     "lil debbie",
+     "debbie downer",
+     "debbie"
+    ],
+    "d": "2024-05-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "4",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Black Eyed Peas"
+     }
+    ]
+   },
+   {
+    "n": [
+     "randall"
+    ],
+    "d": "2024-05-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "0.5",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Black Eyed Peas"
+     }
+    ]
+   },
+   {
+    "n": [
+     "eileen"
+    ],
+    "d": "2024-05-02",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "5",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Hay"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "8",
+      "product": "Beet Pulp"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Black Eyed Peas"
+     }
+    ]
+   },
+   {
+    "n": [
+     "lil debbie",
+     "debbie downer",
+     "debbie"
+    ],
+    "d": "2024-05-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "8",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "3",
+      "product": "Umbarger – Star Glo"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "25",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "12",
+      "product": "GnS"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
+    ]
+   },
+   {
+    "n": [
+     "randall"
+    ],
+    "d": "2024-05-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "2",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "20",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "12",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
+    ]
+   },
+   {
+    "n": [
+     "maverick"
+    ],
+    "d": "2024-05-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "2",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "20",
+      "product": "Drench"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "12",
+      "product": "GnS"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "15",
+      "product": "Dyne"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
+    ]
+   },
+   {
+    "n": [
+     "eileen"
+    ],
+    "d": "2024-05-12",
+    "l": [
+     {
+      "type": "Feed",
+      "lbs": "1",
+      "oz": "0",
+      "amt": "",
+      "product": "Formula Of Champions – X-Factor Show Lamb Feed"
+     },
+     {
+      "type": "Supplement",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Sunglo – S'more Fill"
+     },
+     {
+      "type": "Drench",
+      "lbs": "",
+      "oz": "",
+      "amt": "10",
+      "product": "Drench"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "1",
+      "product": "Natural Fill – Natural Fill"
+     },
+     {
+      "type": "Hay",
+      "lbs": "",
+      "oz": "",
+      "amt": "2",
+      "product": "Hay"
+     }
+    ]
+   }
+  ],
+  "w": [
+   {
+    "n": [
+     "lil debbie",
+     "debbie downer",
+     "debbie"
+    ],
+    "d": "2024-07-29",
+    "v": 122
+   },
+   {
+    "n": [
+     "randall"
+    ],
+    "d": "2024-07-29",
+    "v": 125
+   },
+   {
+    "n": [
+     "maverick"
+    ],
+    "d": "2024-06-30",
+    "v": 138
+   },
+   {
+    "n": [
+     "maverick"
+    ],
+    "d": "2024-07-29",
+    "v": 145
+   },
+   {
+    "n": [
+     "jean paul 2nd",
+     "john piere 2nd"
+    ],
+    "d": "2024-07-29",
+    "v": 148
+   },
+   {
+    "n": [
+     "bline sheep",
+     "bline sheep #2"
+    ],
+    "d": "2024-07-29",
+    "v": 135
+   }
+  ]
+ }
 }
