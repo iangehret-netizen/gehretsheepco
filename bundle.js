@@ -674,19 +674,12 @@ function gxHalfUp(n){return Math.ceil(n*2-1e-9)/2}
 function gxHalfDown(n){return Math.floor(n*2+1e-9)/2}
 function gxWbCalc(show,sid,weights){
   var wb=(show.wbW||{})[sid]||{},e=gxNum(wb.empty),f=gxNum(wb.full);
-  if(f===null)return{info:"Enter the full weight to get a range."};
-  if(e!==null&&e>f)return{warn:"Empty weight is heavier than full — check the numbers."};
-  var tol=gxNum(show.wbTol);if(tol===null)tol=5;var cu=gxNum(show.wbCushion);if(cu===null)cu=1;var days=gxNum(show.wbDays)||0;
-  var tag=gxShowTag(show),ws=gxSortW(((weights||{})[sid]||[]).filter(function(w){return w&&w.src!==tag&&gxNum(w.weight)!==null&&w.date}));
-  var adg=null,src="";
-  if(ws.length>=2){var a=ws[ws.length-2],b=ws[ws.length-1],dd=gxDays(a.date,b.date);if(dd>0){adg=(gxNum(b.weight)-gxNum(a.weight))/dd;src="ADG since last weight"}}
-  if(adg===null){var s=gxAdg(ws);if(s!==null){adg=parseFloat(s);src="season ADG (not enough recent weights)"}}
-  if(adg===null){adg=0;src="no ADG yet, 0 used"}
-  var ring=f+adg*days,allow=Math.max(0,tol-cu),minSafe=ring-allow,low=e!==null?Math.max(e,minSafe):minSafe,high=f;
-  var basis="Projected ring wt "+gxR1(ring)+" lb (full "+f+" + "+adg.toFixed(2)+"/day × "+days+" day"+(days===1?"":"s")+", "+src+"). Plans for "+gxR1(allow)+" lb of the "+tol+" lb allowance ("+cu+" lb cushion).";
-  if(minSafe>high+1e-9)return{warn:"No safe range — over by "+gxR1(minSafe-high)+" lb even at full weight.",basis:basis};
-  var lo=gxHalfUp(low),hi=gxHalfDown(high);if(lo>hi){lo=gxR1(low);hi=gxR1(high)}
-  return{lo:lo,hi:hi,basis:basis};
+  var tol=gxNum(show.wbTol);if(tol===null)tol=5;
+  if(e===null&&f===null)return{info:"Enter the empty and full weight to see the weighback range."};
+  if(e!==null&&f!==null&&e>f)return{warn:"Empty weight is heavier than full \u2014 check the numbers."};
+  var r=function(n){return Math.round(n*10)/10};
+  if(e!==null&&f!==null)return{lo:r(e+tol),hi:r(f+tol),basis:"Entered at empty ("+e+" lb): max weighback "+r(e+tol)+" lb \u00b7 Entered at full ("+f+" lb): max weighback "+r(f+tol)+" lb"};
+  var one=e!==null?e:f;return{lo:r(one+tol),hi:r(one+tol),basis:"Entered at "+(e!==null?"empty":"full")+" ("+one+" lb): max weighback "+r(one+tol)+" lb. Add the "+(e!==null?"full":"empty")+" weight for the full range."};
 }
 function GxShowWeighs(p){
   var d=p.draft,set=p.setDraft,sheep=p.sheep||[],att=(d.attendees||[]),list=sheep.filter(function(s){return att.indexOf(s.id)>=0});
@@ -698,11 +691,9 @@ function GxShowWeighs(p){
   var lab=function(t){return gxE("div",{className:"text-[10px] uppercase tracking-wider text-neutral-400 mb-1"},t)};
   var box=gxE("label",{className:"flex items-center gap-2 text-sm mb-3",style:{color:Ge,fontWeight:600,cursor:"pointer"}},
     gxE("input",{type:"checkbox",checked:on,onChange:function(e){fld("weighbacks",e.target.checked)},style:{width:18,height:18,accentColor:Qe}}),"This show has weighbacks");
-  var wbSet=on&&gxE("div",{className:"grid grid-cols-3 gap-3 mb-3"},
-    gxE("div",null,lab("Allowance (lb)"),numIn(d.wbTol==null?"":d.wbTol,function(v){fld("wbTol",v)},"5")),
-    gxE("div",null,lab("Cushion (lb)"),numIn(d.wbCushion==null?"":d.wbCushion,function(v){fld("wbCushion",v)},"1")),
-    gxE("div",null,lab("Days weigh-in → ring"),numIn(d.wbDays==null?"":d.wbDays,function(v){fld("wbDays",v)},"0")));
-  var wbNote=on&&gxNote("Weighback rule: the lamb can't weigh back more than "+(gxNum(d.wbTol)===null?5:gxNum(d.wbTol))+" lb over the weight entered at weigh-in. Enter each lamb's empty and full weight below for a safe range.");
+  var wbSet=on&&gxE("div",{className:"grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3"},
+    gxE("div",null,lab("Allowance (lb)"),numIn(d.wbTol==null?"":d.wbTol,function(v){fld("wbTol",v)},"5")));
+  var wbNote=on&&gxNote("Weighback rule: the lamb can't weigh back more than "+(gxNum(d.wbTol)===null?5:gxNum(d.wbTol))+" lb over the weight entered at weigh-in. Enter each lamb's empty and full weight to see the highest it can weigh back.");
   var rows=list.length===0?gxE("div",{className:"text-xs text-neutral-400"},"Pick the sheep going above to enter weights."):
     gxE("div",{className:"space-y-2"},list.map(function(s){
       var w=wb[s.id]||{},calc=on?gxWbCalc(d,s.id,p.weights):null;
@@ -713,7 +704,7 @@ function GxShowWeighs(p){
           on&&gxE("div",null,lab("Empty wt"),numIn(w.empty,function(v){setWb(s.id,"empty",v)})),
           on&&gxE("div",null,lab("Full wt"),numIn(w.full,function(v){setWb(s.id,"full",v)}))),
         calc&&gxE("div",{className:"mt-2 text-xs"},
-          calc.lo!=null&&gxE("div",{style:{color:Ge,fontWeight:700,fontSize:13}},"Range: "+calc.lo+"–"+calc.hi+" lb"),
+          calc.lo!=null&&gxE("div",{style:{color:Ge,fontWeight:700,fontSize:13}},"Max weighback: "+(calc.lo===calc.hi?calc.lo:calc.lo+"–"+calc.hi)+" lb"),
           calc.warn&&gxE("div",{style:{color:"#B3261E",fontWeight:700}},calc.warn),
           calc.info&&gxE("div",{className:"text-neutral-400"},calc.info),
           calc.basis&&gxE("div",{className:"text-neutral-400 mt-0.5",style:{fontSize:10}},calc.basis)));
