@@ -85,8 +85,33 @@
     // Registers the service worker so the app shell (HTML/CSS/JS/icons) is cached
     // and keeps working with no internet connection after the first successful load.
     if ("serviceWorker" in navigator) {
+      // v47: when a new version finishes installing, show a small banner
+      // so the update can be loaded with one tap instead of clearing cache.
+      var gscHadController = !!navigator.serviceWorker.controller;
+      var gscShowUpdate = function () {
+        if (document.getElementById("gsc-update-banner")) return;
+        var b = document.createElement("button");
+        b.id = "gsc-update-banner";
+        b.type = "button";
+        b.textContent = "New version ready \u2014 tap to reload";
+        b.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:99999;" +
+          "font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1B1B1B;" +
+          "background:linear-gradient(180deg,#E4CC96,#B8963F);border:0;border-radius:999px;padding:12px 22px;" +
+          "box-shadow:0 6px 22px rgba(0,0,0,.45);cursor:pointer;white-space:nowrap;";
+        b.addEventListener("click", function () { location.reload(); });
+        document.body.appendChild(b);
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (gscHadController) gscShowUpdate();
+        gscHadController = true;
+      });
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
+        navigator.serviceWorker.register("./sw.js").then(function (reg) {
+          try { reg.update(); } catch (e) {}
+          document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible") { try { reg.update(); } catch (e) {} }
+          });
+        }).catch(() => {});
       });
     }
   </script>
