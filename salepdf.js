@@ -213,7 +213,7 @@
     return lots;
   }
 
-  // ---------- layout 3: a farm's ewe list (Import Ewe PDF only) ----------
+  // ---------- layout 3: a plain list of animals (Import Ewe PDF / Roster Import PDF) ----------
   // e.g. a "Southdowns" title, then a header row "Tag | Sire | Notes/'26 Lambs" and one ewe per row.
   var EWE_FIELD = {
     tag: ["tag", "tag #", "tag no", "tag number", "ear tag", "ewe", "ewe tag", "ewe #", "id", "id #", "flock tag", "farm tag"],
@@ -221,7 +221,10 @@
     breed: ["breed", "breed type"],
     sire: ["sire", "sire name", "sired by"],
     damSire: ["dams sire", "dam sire", "dam s sire", "maternal grandsire", "mgs"],
-    dob: ["date of birth", "dob", "birth date", "birthdate", "born", "birth year", "year born"]
+    dob: ["date of birth", "dob", "birth date", "birthdate", "born", "birth year", "year born"],
+    sex: ["sex", "gender"],
+    dam: ["dam", "dam tag", "dam id", "dam #", "dam no", "dam number"],
+    scrapie: ["scrapie", "scrapie tag", "scrapie #", "scrapie id", "usda tag", "usda id"]
   };
   var EWEMAP = {};
   Object.keys(EWE_FIELD).forEach(function (f) { EWE_FIELD[f].forEach(function (k) { EWEMAP[nk(k)] = f; }); });
@@ -252,7 +255,7 @@
         var ti = -1; cols.forEach(function (c, i) { if (c.f === "tag" && ti < 0) ti = i; });
         var tg = clean(row[ti] || "");
         if (tg && /\d/.test(tg) && tg.length <= 14) {
-          var e = { tag: tg, name: "", breed: "", sire: "", damSire: "", dob: "", notes: "" }, extra = [];
+          var e = { tag: tg, name: "", breed: "", sire: "", damSire: "", dob: "", notes: "", sex: "", dam: "", scrapie: "" }, extra = [];
           cols.forEach(function (c, i) {
             if (i === ti || row[i] == null) return;
             var v = clean(row[i]);
@@ -274,9 +277,10 @@
       var k = nk(e.tag), m = byTag[k];
       if (!m) { m = byTag[k] = Object.assign({ twice: 0 }, e); merged.push(m); return; }
       m.twice++;
-      ["name", "breed", "sire", "damSire", "dob"].forEach(function (f) { if (!m[f] && e[f]) m[f] = e[f]; });
+      ["name", "breed", "sire", "damSire", "dob", "sex", "dam", "scrapie"].forEach(function (f) { if (!m[f] && e[f]) m[f] = e[f]; });
       if (e.notes && m.notes.indexOf(e.notes) < 0) m.notes = clean(m.notes + " \u00b7 " + e.notes);
     });
+    merged.forEach(function (e) { if (e.sex) e.sex = normSex(e.sex); });
     var breed = clean(title).replace(/\b(ewes?|flock|list|females?|dams?)\b/ig, "").trim().replace(/ies$/i, "y").replace(/([^s])s$/i, "$1");
     return { ewes: merged, breed: breed, title: title };
   }

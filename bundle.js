@@ -1017,6 +1017,9 @@ function ofBabies(d){var out=[];
   (d.sales||[]).forEach(function(s){(s.lots||[]).forEach(function(l){out.push({uid:"s:"+s.id+":"+l.id,src:"sale",sale:s,ref:l,tag:l.tag,sex:l.sex,breed:l.breed,dob:l.dob,sire:l.sire,dam:l.damTag,year:gxYear(s.date)||gxYear(l.dob),from:(s.name||"Sale")+(l.lot?" — Lot "+l.lot:""),winnings:l.winnings})})});
   (d.ewes||[]).forEach(function(e){(e.babies||[]).forEach(function(b){out.push({uid:"b:"+e.id+":"+b.id,src:"manual",ewe:e,ref:b,tag:b.tag,sex:b.sex,breed:b.breed,dob:b.dob,sire:b.sire,dam:e.tag||e.name,year:gxYear(b.dob)||b.year||"",from:"Added under ewe",winnings:b.winnings})})});
   out.forEach(function(b){b.damKey=ofDamKey(d,b.dam)});return out}
+function ofRosterUid(d,r){if(r.fromLot){var sp=r.fromLot.split(":"),s=(d.sales||[]).filter(function(x){return x.id===sp[0]})[0];if(s&&(s.lots||[]).some(function(l){return l.id===sp[1]}))return"s:"+r.fromLot}
+  var t=gxNorm(r.farmTag),st=gxNorm(r.scrapieTag),hit=null;(d.sales||[]).forEach(function(s){(s.lots||[]).forEach(function(l){var y=gxYear(s.date)||gxYear(l.dob)||"",lt=gxNorm(l.tag);if(!hit&&lt&&(r.year||"")===y&&(lt===t||lt===st))hit="s:"+s.id+":"+l.id})});return hit||"r:"+r.id}
+function ofSibBadges(sib,goEwe){return sib?gxE("div",{key:"sib",className:"flex flex-wrap gap-1 mt-1"},sib.full?gxE("button",{type:"button",onClick:function(){goEwe&&goEwe(sib.damKey)},className:"text-[11px] px-2 py-0.5",style:{background:Ge,color:He,borderRadius:"999px",fontWeight:600}},"Full Sib Record Available \u203a"):null,sib.half?gxE("button",{type:"button",onClick:function(){goEwe&&goEwe(sib.damKey)},className:"text-[11px] px-2 py-0.5",style:{border:"1px solid "+Qe,color:Qe,borderRadius:"999px",fontWeight:600}},"Half Sib Record Available \u203a"):null):null}
 function ofSibs(all,uid){var me=all.filter(function(b){return b.uid===uid})[0];if(!me||!me.damKey)return null;var full=0,half=0,s=gxNorm(me.sire);
   all.forEach(function(b){if(b.uid===uid||b.damKey!==me.damKey)return;if(s&&gxNorm(b.sire)===s)full++;else half++});return full||half?{full:full,half:half,damKey:me.damKey}:null}
 function ofLambLabel(b){return(b.tag?"Tag "+b.tag:"No tag")+(b.sex?" · "+b.sex:"")+" · "+b.from}
@@ -1075,7 +1078,7 @@ function GxAddFarm(p){var n=ge.useState(""),name=n[0],setName=n[1],f=ge.useState
 
 /* ---------- Other Farms: Roster ---------- */
 function ofRosterFields(d){return[{k:"farmTag",l:"Farm Tag"},{k:"scrapieTag",l:"Scrapie Tag"},{k:"sex",l:"Sex",t:"select",o:OF_SEX},{k:"breed",l:"Breed",list:ofBreeds(d)},{k:"sire",l:"Sire",list:ofSires(d)},{k:"dam",l:"Dam",list:ofEweOpts(d)},{k:"showmen",l:"Showmen",t:"showmen",wide:1},{k:"notes",l:"Additional Notes",t:"area",wide:1}]}
-function GxOfRoster(p){var d=p.data,ys=ge.useState(null),yr=ys[0],setYr=ys[1],es=ge.useState(null),edit=es[0],setEdit=es[1],ns=ge.useState(""),newYr=ns[0],setNewYr=ns[1],as=ge.useState(!1),adding=as[0],setAdding=as[1];
+function GxOfRoster(p){var d=p.data,ys=ge.useState(null),yr=ys[0],setYr=ys[1],es=ge.useState(null),edit=es[0],setEdit=es[1],ns=ge.useState(""),newYr=ns[0],setNewYr=ns[1],as=ge.useState(!1),adding=as[0],setAdding=as[1],irs=ge.useState(!1),impR=irs[0],setImpR=irs[1];
   var years=(d.years||[]).slice();(d.roster||[]).forEach(function(r){if(r.year&&years.indexOf(r.year)<0)years.push(r.year)});years.sort(function(a,b){return ofCmp(b,a)});
   function addYear(){var y=newYr.trim();if(!y)return;p.save(function(x){if(x.years.indexOf(y)<0)x.years.push(y);return x});setNewYr("");setAdding(!1);setYr(y)}
   function saveLamb(v){p.save(function(x){v=Object.assign({},v);if(!v.id)v.id=Nr();v.year=v.year||yr;ofUpd(x.roster,v);return x});setEdit(null)}
@@ -1088,12 +1091,12 @@ function GxOfRoster(p){var d=p.data,ys=ge.useState(null),yr=ys[0],setYr=ys[1],es
     adding&&gxE("div",{className:"flex gap-2 mb-4"},gxE(Re,{value:newYr,onChange:function(e){setNewYr(e.target.value)},placeholder:String(new Date().getFullYear()),inputMode:"numeric",onKeyDown:function(e){if(e.key==="Enter")addYear()}}),gxE(tt,{onClick:addYear},"Add")),
     years.length===0?ofEmpty("No years yet. Tap Add Year to start a group."):gxE("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-2"},years.map(function(y){var n=(d.roster||[]).filter(function(r){return r.year===y}).length;
       return gxE("button",{key:y,type:"button",onClick:function(){setYr(y)},className:"p-3 text-left flex items-center justify-between",style:{background:$t,border:"1px solid "+He,borderRadius:"10px"}},ofBig(y),gxE("span",{className:"text-xs",style:{color:Qe,fontWeight:600}},n+" lamb"+(n===1?"":"s")+" ›"))})));
-  var list=(d.roster||[]).filter(function(r){return r.year===yr}).sort(function(a,b){return ofCmp(a.farmTag,b.farmTag)});
+  var list=(d.roster||[]).filter(function(r){return r.year===yr}).sort(function(a,b){return ofCmp(a.farmTag,b.farmTag)}),rbab=ofBabies(d);
   return gxE(Gn,null,ofBack("All years",function(){setYr(null)}),
-    gxE("div",{className:"flex items-center justify-between mb-4 gap-2 flex-wrap"},ofBig(yr+" Roster"),gxE("div",{className:"flex gap-2 flex-wrap"},gxBtn("Rename",function(){renYear(yr)}),gxBtn("Delete",function(){delYear(yr)},{danger:!0}),gxE(tt,{onClick:function(){setEdit({year:yr,showmen:[]})}},"+ Add Lamb"))),
+    gxE("div",{className:"flex items-center justify-between mb-4 gap-2 flex-wrap"},ofBig(yr+" Roster"),gxE("div",{className:"flex gap-2 flex-wrap"},gxBtn("Rename",function(){renYear(yr)}),gxBtn("Delete",function(){delYear(yr)},{danger:!0}),gxE(tt,{variant:"outline",onClick:function(){setImpR(!0)}},"Import PDF"),gxE(tt,{onClick:function(){setEdit({year:yr,showmen:[]})}},"+ Add Lamb"))),
     list.length===0?ofEmpty("No lambs in "+yr+" yet."):gxE("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-2"},list.map(function(r){var ew=ofEweFor(d,r.dam);
-      return ofCard(r.id,[gxE("div",{key:"h",className:"flex items-start justify-between gap-2"},gxE("div",null,ofBig(r.farmTag?"Tag "+r.farmTag:"No farm tag"),r.scrapieTag?gxE("div",{className:"text-[11px] text-neutral-500"},"Scrapie "+r.scrapieTag):null),gxE("div",{className:"flex gap-1"},gxBtn("Edit",function(){setEdit(r)}),gxBtn("✕",function(){del(r)},{danger:!0,title:"Delete"}))),
-        gxE("div",{key:"b",className:"mt-1 space-y-0.5"},ofKV("Sex",r.sex),ofKV("Breed",r.breed),ofKV("Sire",r.sire),ofKV("Dam",r.dam&&(r.dam+(ew&&ew.name&&gxNorm(ew.name)!==gxNorm(r.dam)?" ("+ew.name+")":""))),ofKV("Winnings",r.winnings),r.notes?gxE("div",{className:"text-xs mt-1",style:{color:"#555",whiteSpace:"pre-wrap"}},r.notes):null,ofChips(r.showmen))])})),form)}
+      return ofCard(r.id,[gxE("div",{key:"h",className:"flex items-start justify-between gap-2"},gxE("div",null,ofBig(r.farmTag?"Tag "+r.farmTag:"No farm tag"),r.scrapieTag?gxE("div",{className:"text-[11px] text-neutral-500"},"Scrapie "+r.scrapieTag):null),gxE("div",{className:"flex gap-1"},gxBtn("Edit",function(){setEdit(r)}),gxBtn("✕",function(){del(r)},{danger:!0,title:"Delete"}))),ofSibBadges(ofSibs(rbab,ofRosterUid(d,r)),p.goEwe),
+        gxE("div",{key:"b",className:"mt-1 space-y-0.5"},ofKV("Sex",r.sex),ofKV("Breed",r.breed),ofKV("Sire",r.sire),ofKV("Dam",r.dam&&(r.dam+(ew&&ew.name&&gxNorm(ew.name)!==gxNorm(r.dam)?" ("+ew.name+")":""))),ofKV("Winnings",r.winnings),r.notes?gxE("div",{className:"text-xs mt-1",style:{color:"#555",whiteSpace:"pre-wrap"}},r.notes):null,ofChips(r.showmen))])})),form,impR&&gxE(GxOfImport,{mode:"roster",year:yr,data:d,save:p.save,onClose:function(){setImpR(!1)}}))}
 
 /* ---------- Other Farms: Sales ---------- */
 function ofLotFields(d,sale){return[{k:"lot",l:"Lot Number",im:"numeric"},{k:"tag",l:"Tag Number"},{k:"sex",l:"Sex",t:"select",o:OF_SEX},{k:"breed",l:"Breed",list:ofBreeds(d)},{k:"dob",l:"DOB",t:"date"},{k:"sire",l:"Sire",list:ofSires(d)},{k:"damTag",l:"Dam Tag",list:ofEweOpts(d)},{k:"damSire",l:"Dam Sire",list:ofSires(d)},{k:"myPrice",l:"My Price",im:"decimal",ph:"$"},{k:"finalPrice",l:"Final Sale Price",im:"decimal",ph:"$"},{k:"comments",l:"Comments",t:"area",wide:1},{k:"showmen",l:"Showmen",t:"showmen",wide:1}]}
@@ -1396,6 +1399,7 @@ function GxSMOwner(){var cfg=useGx(GXK.sm,{}),log=useGx(GXK.smlog,[])||[];useGx(
 var OF_IMP_FIELDS=[["comments","Comments"],["ignore","Ignore"],["lot","Lot Number"],["tag","Tag Number"],["sex","Sex"],["breed","Breed"],["dob","DOB"],["sire","Sire"],["damTag","Dam Tag"],["damSire","Dam Sire"]];
 function gxLoadSalePdf(){return window.gscReadSalePdf?Promise.resolve():new Promise(function(res,rej){var s=document.createElement("script");s.src="./salepdf.js";s.onload=res;s.onerror=function(){rej(new Error("Couldn't load the PDF reader — open the app once with a connection."))};document.head.appendChild(s)})}
 function ofImpSame(a,b){return gxNorm(a)!==""&&gxNorm(a)===gxNorm(b)}
+function ofRosterHas(x,y,r){var t=gxNorm(r.tag),s=gxNorm(r.scrapie);return(x.roster||[]).some(function(o){return o.year===y&&((t&&(gxNorm(o.farmTag)===t||gxNorm(o.scrapieTag)===t))||(s&&(gxNorm(o.scrapieTag)===s||gxNorm(o.farmTag)===s)))})}
 function ofImpDams(d,rows){var out=[],seen={};rows.forEach(function(r){var t=String(r.damTag||"").trim();if(!t)return;var k=gxNorm(t);if(seen[k]){if(!seen[k].sire&&r.damSire)seen[k].sire=r.damSire;return}
   var ex=ofEweFor(d,t);var o={id:Nr(),tag:t,sire:String(r.damSire||"").trim(),exists:!!ex,on:!ex};seen[k]=o;out.push(o)});return out}
 function GxOfImport(p){
@@ -1404,13 +1408,19 @@ function GxOfImport(p){
   function dupOf(r){if(!sale)return null;var lots=sale.lots||[];return lots.filter(function(l){return ofImpSame(l.lot,r.lot)})[0]||lots.filter(function(l){return ofImpSame(l.tag,r.tag)})[0]||null}
   async function pick(e){var f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;setStep("busy");setMsg("Opening the PDF…");
     try{await gxLoadSalePdf();var r=await window.gscReadSalePdf(f,function(m){setMsg(m)});setRes(r);
+      if(p.mode==="roster"){var src=r.lots.length>((r.eweList&&r.eweList.ewes.length)||0)?"lots":"list",rr=[];
+        if(src==="lots")rr=r.lots.map(function(l){var ex=[];r.extraKeys.forEach(function(k){var v=l.extra&&l.extra[k.key];if(v&&k.use==="comments")ex.push(k.key+": "+v)});
+          return{tag:l.tag,scrapie:"",sex:l.sex,breed:l.breed,sire:l.sire,dam:l.damTag,notes:[l.lot?"Catalog Lot "+l.lot:"",l.comments].concat(ex).filter(Boolean).join("\n")}});
+        else rr=r.eweList.ewes.map(function(e){return{tag:e.tag,scrapie:e.scrapie,sex:e.sex,breed:e.breed,sire:e.sire,dam:e.dam,notes:[e.name?"Name: "+e.name:"",e.notes,e.damSire?"Dam Sire: "+e.damSire:"",e.dob?"DOB: "+e.dob:""].filter(Boolean).join(" \u00b7 ")}});
+        if(!rr.length){setStep("none");return}
+        setBreedAll(src==="list"&&r.eweList.breed||"");setRows(rr.map(function(o){o._id=Nr();o._dup=ofRosterHas(d,p.year,o);o._on=!o._dup;return o}));setStep("rosterlist");return}
       if(!r.lots.length&&!(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length)){setStep("none");return}
       if(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length&&!r.lots.length){setBreedAll(r.eweList.breed||"");setRows(r.eweList.ewes.map(function(e){var o=Object.assign({},e,{_id:Nr()});o._dup=!!ofEweFor(d,e.tag);o._on=!o._dup;return o}));setStep("ewelist");return}
       if(p.mode==="ewes"){setDams(ofImpDams(d,r.lots));setStep("dams");return}
       setKeys(r.extraKeys.map(function(k){return Object.assign({},k)}));
       setRows(r.lots.map(function(l){var o=Object.assign({},l,{_id:Nr()});o._dup=!!dupOf(o);o._on=!o._dup;return o}));setStep("lots")}
     catch(err){setMsg(err&&err.message||String(err));setStep("error")}}
-  function setRow(i,k,v){setRows(rows.map(function(r,j){if(j!==i)return r;var n=Object.assign({},r);n[k]=v;if((k==="lot"||k==="tag")&&step!=="ewelist"){n._dup=!!dupOf(n);if(n._dup)n._on=!1}if(k==="tag"&&step==="ewelist"){n._dup=!!ofEweFor(d,v);n._on=!n._dup}if(k==="damTag"){var ew=ofEweFor(d,v);if(ew&&ew.sire&&!n.damSire)n.damSire=ew.sire}return n}))}
+  function setRow(i,k,v){setRows(rows.map(function(r,j){if(j!==i)return r;var n=Object.assign({},r);n[k]=v;if((k==="lot"||k==="tag")&&step!=="ewelist"&&step!=="rosterlist"){n._dup=!!dupOf(n);if(n._dup)n._on=!1}if(k==="tag"&&step==="ewelist"){n._dup=!!ofEweFor(d,v);n._on=!n._dup}if((k==="tag"||k==="scrapie")&&step==="rosterlist"){n._dup=ofRosterHas(d,p.year,n);n._on=!n._dup}if(k==="damTag"){var ew=ofEweFor(d,v);if(ew&&ew.sire&&!n.damSire)n.damSire=ew.sire}return n}))}
   function build(r){var lot={id:Nr(),lot:r.lot||"",tag:r.tag||"",sex:r.sex||"",breed:r.breed||"",dob:r.dob||"",sire:r.sire||"",damTag:r.damTag||"",damSire:r.damSire||"",comments:r.comments||"",showmen:[],myPrice:"",finalPrice:""},extra=[];
     keys.forEach(function(k){var v=r.extra&&r.extra[k.key];if(v==null||v===""||k.use==="ignore")return;if(k.use==="comments")extra.push(k.key+": "+v);else if(!lot[k.use])lot[k.use]=k.use==="sex"?v.replace(/^./,function(c){return c.toUpperCase()}):v});
     if(extra.length)lot.comments=(lot.comments?lot.comments+"\n":"")+extra.join("\n");if(lot.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(lot.dob))lot.comments=(lot.comments?lot.comments+"\n":"")+"DOB: "+lot.dob,lot.dob="";return lot}
@@ -1419,8 +1429,12 @@ function GxOfImport(p){
     p.save(function(x){var s=x.sales.filter(function(z){return z.id===sale.id})[0];if(!s)return x;s.lots=s.lots||[];
       built.forEach(function(l){if(s.lots.some(function(o){return ofImpSame(o.lot,l.lot)||ofImpSame(o.tag,l.tag)}))return;s.lots.push(l)});return x});
     setAdded(built.length);var dm=ofImpDams(d,built);setDams(dm);setStep(dm.some(function(x){return!x.exists})?"dams":"done")}
+  function importRosterList(){var pk=rows.filter(function(r){return r._on&&!r._dup&&String(r.tag||r.scrapie||"").trim()});if(!pk.length){alert("Nothing checked to import.");return}
+    p.save(function(x){if(x.years.indexOf(p.year)<0)x.years.push(p.year);pk.forEach(function(r){if(ofRosterHas(x,p.year,r))return;
+      x.roster.push({id:Nr(),year:p.year,farmTag:String(r.tag||"").trim(),scrapieTag:String(r.scrapie||"").trim(),sex:r.sex||"",breed:r.breed||breedAll||"",sire:r.sire||"",dam:r.dam||"",showmen:[],notes:r.notes||""})});return x});
+    setAdded(pk.length);setStep("done")}
   function importEweList(){var pk=rows.filter(function(r){return r._on&&!r._dup&&String(r.tag||"").trim()});if(!pk.length){alert("Nothing checked to import.");return}
-    p.save(function(x){pk.forEach(function(r){if(ofEweFor(x,r.tag))return;x.ewes.push({id:Nr(),tag:String(r.tag).trim(),name:r.name||"",breed:r.breed||breedAll||"",sire:r.sire||"",damSire:r.damSire||"",dob:/^\d{4}-\d{2}-\d{2}$/.test(r.dob||"")?r.dob:"",notes:[r.notes,r.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(r.dob)?"Born: "+r.dob:""].filter(Boolean).join(" \u00b7 "),babies:[]})});return x});
+    p.save(function(x){pk.forEach(function(r){if(ofEweFor(x,r.tag))return;x.ewes.push({id:Nr(),tag:String(r.tag).trim(),name:r.name||"",breed:r.breed||breedAll||"",sire:r.sire||"",damSire:r.damSire||"",dob:/^\d{4}-\d{2}-\d{2}$/.test(r.dob||"")?r.dob:"",notes:[r.notes,r.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(r.dob)?"Born: "+r.dob:"",r.dam?"Dam: "+r.dam:"",r.scrapie?"Scrapie: "+r.scrapie:""].filter(Boolean).join(" \u00b7 "),babies:[]})});return x});
     setAdded(pk.length);setStep("done")}
   function importEwes(){var add=dams.filter(function(x){return x.on&&!x.exists});
     if(add.length)p.save(function(x){add.forEach(function(a){if(ofEweFor(x,a.tag))return;x.ewes.push({id:Nr(),tag:a.tag,name:"",sire:a.sire,damSire:"",dob:"",notes:p.mode==="ewes"?"Added from a sale catalog PDF":"Added from "+(sale&&sale.name||"a sale catalog"),babies:[]})});return x});
@@ -1430,9 +1444,9 @@ function GxOfImport(p){
     t==="sex"?gxE("select",Object.assign({},inp,{value:r[k]||"",onChange:function(e){setRow(i,k,e.target.value)}}),OF_SEX.map(function(o){return gxE("option",{key:o[0],value:o[0]},o[1])})):
     t==="area"?gxE("textarea",Object.assign({},inp,{rows:2,value:r[k]||"",onChange:function(e){setRow(i,k,e.target.value)}})):
     gxE("input",Object.assign({},inp,{type:t||"text",value:r[k]||"",onChange:function(e){setRow(i,k,e.target.value)}})))}
-  var title=p.mode==="ewes"?"Import Ewe PDF":"Import Sale PDF";
+  var title=p.mode==="ewes"?"Import Ewe PDF":p.mode==="roster"?"Import Roster PDF \u2014 "+p.year:"Import Sale PDF";
   var body;
-  if(step==="pick")body=gxE("div",null,gxNote(p.mode==="ewes"?"Pick a farm's ewe list (Tag / Sire / Notes columns) or a sale catalog \u2014 from a catalog the app pulls out each lot's dam. You'll check everything before it's added, and ewes you already have are skipped. Nothing you've already entered is changed.":"Pick the sale's catalog PDF. You'll see everything it found and can fix or uncheck lots before anything is saved. Lots already in this sale are skipped — nothing you've entered is changed."),
+  if(step==="pick")body=gxE("div",null,gxNote(p.mode==="roster"?"Pick a list of lambs (Tag / Sire / Dam / Notes columns) or a sale catalog. Everything goes into the "+p.year+" roster after you check it; lambs already in "+p.year+" are skipped. Nothing you've already entered is changed.":p.mode==="ewes"?"Pick a farm's ewe list (Tag / Sire / Notes columns) or a sale catalog \u2014 from a catalog the app pulls out each lot's dam. You'll check everything before it's added, and ewes you already have are skipped. Nothing you've already entered is changed.":"Pick the sale's catalog PDF. You'll see everything it found and can fix or uncheck lots before anything is saved. Lots already in this sale are skipped — nothing you've entered is changed."),
     gxE("input",{type:"file",accept:"application/pdf,.pdf",onChange:pick,className:"text-sm"}));
   else if(step==="busy")body=gxE("div",{className:"text-sm py-6 text-center",style:{color:Ge}},msg);
   else if(step==="error")body=gxE("div",null,gxE("div",{className:"text-sm mb-3",style:{color:"#8C4A4A"}},"Couldn't read that PDF: "+msg),gxBtn("Try another file",function(){setStep("pick")}));
@@ -1450,6 +1464,20 @@ function GxOfImport(p){
         r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"lot","Lot"),fld(i,r,"tag","Tag"),fld(i,r,"sex","Sex","sex"),fld(i,r,"breed","Breed"),fld(i,r,"dob","DOB","date"),fld(i,r,"sire","Sire"),fld(i,r,"damTag","Dam Tag"),fld(i,r,"damSire","Dam Sire"),
           gxE("div",{className:"col-span-2 md:col-span-2"},fld(i,r,"comments","Comments","area"))))})),
       gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.onClose},"Cancel"),gxE(tt,{onClick:importLots,disabled:!n},"Import "+n+" Lot"+(n===1?"":"s"))))}
+  else if(step==="rosterlist"){var nr=rows.filter(function(r){return r._on&&!r._dup}).length,dr=rows.filter(function(r){return r._dup}).length;
+    body=gxE("div",null,
+      res&&res.source==="scan"?gxE("div",{className:"text-xs mb-2 p-2",style:{background:"#FFF4E0",borderRadius:"8px",color:"#7A5200"}},"This was a scanned PDF, so some words may be misread \u2014 check each lamb."):null,
+      gxE("div",{className:"text-xs text-neutral-500 mb-2"},"Found "+rows.length+" lamb"+(rows.length===1?"":"s")+" for the "+p.year+" roster"+(dr?" \u00b7 "+dr+" already in "+p.year+" (skipped)":"")+"."),
+      gxE("label",{className:"block mb-3 p-2",style:{background:$t,borderRadius:"10px",border:"1px solid "+He}},gxE("span",{className:"text-[11px] uppercase tracking-wider",style:{color:Qe,fontWeight:700}},"Breed for all of these"),
+        gxE("input",Object.assign({},inp,{value:breedAll,list:"ofimp-breeds",placeholder:"e.g. Southdown",onChange:function(e){setBreedAll(e.target.value)}})),gxE("datalist",{id:"ofimp-breeds"},ofBreeds(d).map(function(b){return gxE("option",{key:b,value:b})})),
+        gxE("span",{className:"text-[11px] text-neutral-500"},"Used for any lamb whose own Breed box is left blank.")),
+      gxE("div",{className:"space-y-2"},rows.map(function(r,i){return gxE("div",{key:r._id,className:"p-2",style:{background:r._dup?"#F1EFEA":"#FFFFFF",border:"1px solid "+(r._on?Qe:"#DDD8CC"),borderRadius:"10px",opacity:r._on||r._dup?1:.6}},
+        gxE("label",{className:"flex items-center gap-2 mb-1"},gxE("input",{type:"checkbox",checked:!!r._on,disabled:r._dup,onChange:function(){setRow(i,"_on",!r._on)},style:{width:18,height:18,accentColor:Qe}}),
+          gxE("span",{className:"text-sm",style:{color:Ge,fontWeight:700}},"Tag "+(r.tag||r.scrapie||"?")+(r.sire?" \u00b7 "+r.sire:"")),r._dup?gxE("span",{className:"text-[11px]",style:{color:"#8C4A4A"}},"Already in "+p.year+" \u2014 skipped"):null),
+        r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"tag","Farm Tag"),fld(i,r,"scrapie","Scrapie Tag"),fld(i,r,"sex","Sex","sex"),
+          gxE("label",{key:"br",className:"block"},gxE("span",{className:"text-[10px] uppercase tracking-wider text-neutral-500"},"Breed"),gxE("input",Object.assign({},inp,{value:r.breed||"",placeholder:breedAll||"",list:"ofimp-breeds",onChange:function(e){setRow(i,"breed",e.target.value)}}))),
+          fld(i,r,"sire","Sire"),fld(i,r,"dam","Dam"),gxE("div",{className:"col-span-2 md:col-span-2"},fld(i,r,"notes","Notes","area"))))})),
+      gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.onClose},"Cancel"),gxE(tt,{onClick:importRosterList,disabled:!nr},"Add "+nr+" Lamb"+(nr===1?"":"s"))))}
   else if(step==="ewelist"){var ne=rows.filter(function(r){return r._on&&!r._dup}).length,dupN=rows.filter(function(r){return r._dup}).length;
     body=gxE("div",null,
       res&&res.source==="scan"?gxE("div",{className:"text-xs mb-2 p-2",style:{background:"#FFF4E0",borderRadius:"8px",color:"#7A5200"}},"This was a scanned list, so some words may be misread \u2014 check each ewe."):null,
@@ -1475,7 +1503,7 @@ function GxOfImport(p){
           gxE("input",Object.assign({},inp,{value:x.tag,placeholder:"Tag",onChange:function(e){var v=e.target.value;setDams(dams.map(function(z,j){return j===i?Object.assign({},z,{tag:v}):z}))}})),
           gxE("input",Object.assign({},inp,{value:x.sire,placeholder:"Sire (Dam's Sire)",onChange:function(e){var v=e.target.value;setDams(dams.map(function(z,j){return j===i?Object.assign({},z,{sire:v}):z}))}}))))})),
       gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.mode==="ewes"?p.onClose:function(){setStep("done")}},p.mode==="ewes"?"Cancel":"Skip"),gxE(tt,{onClick:importEwes,disabled:!nn},"Add "+nn+" Ewe"+(nn===1?"":"s"))))}
-  else body=gxE("div",null,gxE("div",{className:"text-sm mb-3",style:{color:"#2E7D32",fontWeight:600}},p.mode==="ewes"?"✓ Added "+added+" ewe"+(added===1?"":"s")+".":"✓ Added "+added+" lot"+(added===1?"":"s")+(dams.some(function(x){return x.done})?" and "+dams.filter(function(x){return x.done}).length+" ewe(s)":"")+"."),gxE("div",{className:"flex justify-end"},gxE(tt,{onClick:p.onClose},"Done")));
+  else body=gxE("div",null,gxE("div",{className:"text-sm mb-3",style:{color:"#2E7D32",fontWeight:600}},p.mode==="roster"?"\u2713 Added "+added+" lamb"+(added===1?"":"s")+" to "+p.year+".":p.mode==="ewes"?"✓ Added "+added+" ewe"+(added===1?"":"s")+".":"✓ Added "+added+" lot"+(added===1?"":"s")+(dams.some(function(x){return x.done})?" and "+dams.filter(function(x){return x.done}).length+" ewe(s)":"")+"."),gxE("div",{className:"flex justify-end"},gxE(tt,{onClick:p.onClose},"Done")));
   return gxE(GxModal,{onClose:p.onClose,width:720},gxE("div",{className:"flex items-center justify-between gap-2 mb-2"},gxE(mn,null,title),step==="pick"||step==="error"||step==="none"?gxBtn("Close",p.onClose):null),body)}
 
 
