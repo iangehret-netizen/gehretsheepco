@@ -1,4 +1,4 @@
-GEHRET SHEEP CO — SHOWMAN CODES SETUP (v56, real site)
+GEHRET SHEEP CO — SHOWMAN CODES SETUP (v57, real site)
 Do these in order. Steps 1 and 2 are one-time, in the Firebase console for the Gehret project.
 
 1) REPLACE THE SECURITY RULES  (do this FIRST)
