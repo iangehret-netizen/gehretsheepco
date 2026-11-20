@@ -213,6 +213,74 @@
     return lots;
   }
 
+  // ---------- layout 3: a farm's ewe list (Import Ewe PDF only) ----------
+  // e.g. a "Southdowns" title, then a header row "Tag | Sire | Notes/'26 Lambs" and one ewe per row.
+  var EWE_FIELD = {
+    tag: ["tag", "tag #", "tag no", "tag number", "ear tag", "ewe", "ewe tag", "ewe #", "id", "id #", "flock tag", "farm tag"],
+    name: ["name", "ewe name"],
+    breed: ["breed", "breed type"],
+    sire: ["sire", "sire name", "sired by"],
+    damSire: ["dams sire", "dam sire", "dam s sire", "maternal grandsire", "mgs"],
+    dob: ["date of birth", "dob", "birth date", "birthdate", "born", "birth year", "year born"]
+  };
+  var EWEMAP = {};
+  Object.keys(EWE_FIELD).forEach(function (f) { EWE_FIELD[f].forEach(function (k) { EWEMAP[nk(k)] = f; }); });
+  function eweField(s) { var k = nk(s); if (EWEMAP[k]) return EWEMAP[k]; if (/^(notes?|comments?|remarks|lambs?)\b/.test(k) || /\bnotes?\b/.test(k)) return "notes"; return null; }
+  function parseEweList(pages) {
+    var ewes = [], title = "";
+    pages.forEach(function (pg) {
+      var cols = null;
+      pg.lines.forEach(function (L) {
+        var cells = cellsOf(L);
+        if (!cols) {
+          var fs = cells.map(function (c) { return eweField(c.str); });
+          if (fs.indexOf("tag") >= 0 && fs.filter(Boolean).length >= 2 && !cells.some(function (c) { return fieldFor(c.str) === "lot"; })) {
+            cols = cells.map(function (c, i) { var w = c.str.length * 5; return { cx: c.x + w / 2, f: fs[i], key: c.str }; });
+            L.items.forEach(function (it, i) { if (cols[i]) cols[i].cx = it.x + (it.w || 0) / 2; });
+            // centres from the actual header words
+            cols.forEach(function (col) { var hit = L.items.filter(function (it) { return clean(it.str) === col.key || col.key.indexOf(clean(it.str)) === 0; })[0]; if (hit) col.cx = hit.x + (hit.w || 0) / 2; });
+          } else if (!title && cells.length === 1 && cells[0].str.length < 40 && !/\d{3,}/.test(cells[0].str)) title = cells[0].str;
+          return;
+        }
+        var row = {};
+        cells.forEach(function (c) {
+          var cw = c.x + c.str.length * 2.5, best = 0, bd = 1e9;
+          L.items.forEach(function (it) { if (clean(it.str) && c.str.indexOf(clean(it.str)) === 0 && Math.abs(it.x - c.x) < 1) cw = it.x + (it.w || 0) / 2; });
+          cols.forEach(function (col, i) { var dd = Math.abs(col.cx - cw); if (col.f === "tag") dd = Math.abs(col.cx - (c.x + 12)) * 1.4; if (dd < bd) { bd = dd; best = i; } });
+          row[best] = row[best] ? row[best] + " " + c.str : c.str;
+        });
+        var ti = -1; cols.forEach(function (c, i) { if (c.f === "tag" && ti < 0) ti = i; });
+        var tg = clean(row[ti] || "");
+        if (tg && /\d/.test(tg) && tg.length <= 14) {
+          var e = { tag: tg, name: "", breed: "", sire: "", damSire: "", dob: "", notes: "" }, extra = [];
+          cols.forEach(function (c, i) {
+            if (i === ti || row[i] == null) return;
+            var v = clean(row[i]);
+            if (c.f === "notes") e.notes = clean(e.notes + " " + v);
+            else if (c.f === "dob") e.dob = /^\d{4}$/.test(v) ? v : normDate(v);
+            else if (c.f) e[c.f] = e[c.f] ? e[c.f] + " " + v : v;
+            else extra.push(c.key + ": " + v);
+          });
+          if (extra.length) e.notes = clean((e.notes ? e.notes + " \u00b7 " : "") + extra.join(" \u00b7 "));
+          ewes.push(e);
+        } else if (ewes.length) {
+          var last = ewes[ewes.length - 1]; Object.keys(row).forEach(function (i) { last.notes = clean(last.notes + " " + row[i]); });
+        }
+      });
+    });
+    // same tag listed twice -> one ewe (fill blanks, keep both notes)
+    var merged = [], byTag = {};
+    ewes.forEach(function (e) {
+      var k = nk(e.tag), m = byTag[k];
+      if (!m) { m = byTag[k] = Object.assign({ twice: 0 }, e); merged.push(m); return; }
+      m.twice++;
+      ["name", "breed", "sire", "damSire", "dob"].forEach(function (f) { if (!m[f] && e[f]) m[f] = e[f]; });
+      if (e.notes && m.notes.indexOf(e.notes) < 0) m.notes = clean(m.notes + " \u00b7 " + e.notes);
+    });
+    var breed = clean(title).replace(/\b(ewes?|flock|list|females?|dams?)\b/ig, "").trim().replace(/ies$/i, "y").replace(/([^s])s$/i, "$1");
+    return { ewes: merged, breed: breed, title: title };
+  }
+
   // ---------- shape the result ----------
   function shape(raw) {
     var extraKeys = [], seen = {};
@@ -251,6 +319,7 @@
     var out = shape(raw);
     out.source = source; out.pages = pages.length; out.layout = raw === tables ? "table" : "blocks";
     out.text = all.join("\n");
+    out.eweList = parseEweList(pages);
     return out;
   };
 })();

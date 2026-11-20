@@ -989,7 +989,16 @@ function gxOfData(id){if(!id)return null;var k=gxOfKey(id);if(Object.prototype.h
   if(!gxOfReq[k]){gxOfReq[k]=1;window.storage.get(k).then(function(r){return r&&r.value?JSON.parse(r.value):null}).catch(function(){return null}).then(function(v){if(!Object.prototype.hasOwnProperty.call(gxS.vals,k))gxS.vals[k]=Object.assign(gxOfBlank(),v||{});gxNotify(k)})}
   return null}
 function useOf(id){useGx(id?gxOfKey(id):"gx:none",null);return gxOfData(id)}
-function gxOfSave(id,fn){var cur=Object.assign(gxOfBlank(),gxOfData(id)||{}),c=JSON.parse(JSON.stringify(cur)),n=fn(c)||c;gxSet(gxOfKey(id),n)}
+function gxOfSave(id,fn){var cur=Object.assign(gxOfBlank(),gxOfData(id)||{}),c=JSON.parse(JSON.stringify(cur)),n=fn(c)||c;ofSalesToRoster(n);gxSet(gxOfKey(id),n)}
+/* v61: sale lots are copied into the Roster year of the sale (one way, add-only) */
+function ofLotYear(s,l){return gxYear(s.date)||gxYear(l.dob)||""}
+function ofSalesToRoster(x){var added=0;x.roster=x.roster||[];x.years=x.years||[];
+  (x.sales||[]).forEach(function(s){(s.lots||[]).forEach(function(l){var y=ofLotYear(s,l);if(!y)return;var key=s.id+":"+l.id,t=gxNorm(l.tag);
+    if(x.roster.some(function(r){return r.fromLot===key||(t&&r.year===y&&(gxNorm(r.farmTag)===t||gxNorm(r.scrapieTag)===t))}))return;
+    var note=["From "+(s.name||"sale")+(s.date?" ("+gxFmt(s.date)+")":"")+(l.lot?", Lot "+l.lot:""),l.comments].filter(Boolean).join("\n");
+    x.roster.push({id:Nr(),year:y,farmTag:l.tag||"",scrapieTag:"",sex:l.sex||"",breed:l.breed||"",sire:l.sire||"",dam:l.damTag||"",showmen:(l.showmen||[]).slice(),notes:note,fromLot:key});
+    if(x.years.indexOf(y)<0)x.years.push(y);added++})});return added}
+function ofNeedsRoster(x){var c=JSON.parse(JSON.stringify(x));return ofSalesToRoster(c)>0}
 function ofUpd(arr,item){var i=-1;arr.forEach(function(x,j){if(x.id===item.id)i=j});if(i<0)arr.push(item);else arr[i]=item;return arr}
 function ofNum(v){var n=parseFloat(String(v==null?"":v).replace(/[^0-9.\-]/g,""));return isNaN(n)?null:n}
 function ofMoney(v){var n=ofNum(v);return n==null?(v||""):"$"+n.toLocaleString(void 0,{maximumFractionDigits:2})}
@@ -1003,7 +1012,8 @@ function useMyShowmen(){var s=ge.useState(gxShowmenCache||[]);ge.useEffect(funct
 function ofEweFor(d,txt){var n=gxNorm(txt);if(!n)return null;var e=d.ewes||[];return e.filter(function(x){return gxNorm(x.tag)===n})[0]||e.filter(function(x){return gxNorm(x.name)===n})[0]||null}
 function ofDamKey(d,txt){var e=ofEweFor(d,txt);return e?"e:"+e.id:(gxNorm(txt)?"t:"+gxNorm(txt):"")}
 function ofBabies(d){var out=[];
-  (d.roster||[]).forEach(function(r){out.push({uid:"r:"+r.id,src:"roster",ref:r,tag:r.farmTag||r.scrapieTag,sex:r.sex,breed:r.breed,dob:"",sire:r.sire,dam:r.dam,year:r.year,from:"Roster "+(r.year||""),winnings:r.winnings})});
+  var lotKeys={},lotTags={};(d.sales||[]).forEach(function(s){(s.lots||[]).forEach(function(l){lotKeys[s.id+":"+l.id]=1;var t=gxNorm(l.tag),y=gxYear(s.date)||gxYear(l.dob)||"";if(t)lotTags[y+"|"+t]=1})});
+  (d.roster||[]).forEach(function(r){if((r.fromLot&&lotKeys[r.fromLot])||lotTags[(r.year||"")+"|"+gxNorm(r.farmTag)]||(r.scrapieTag&&lotTags[(r.year||"")+"|"+gxNorm(r.scrapieTag)]))return;out.push({uid:"r:"+r.id,src:"roster",ref:r,tag:r.farmTag||r.scrapieTag,sex:r.sex,breed:r.breed,dob:"",sire:r.sire,dam:r.dam,year:r.year,from:"Roster "+(r.year||""),winnings:r.winnings})});
   (d.sales||[]).forEach(function(s){(s.lots||[]).forEach(function(l){out.push({uid:"s:"+s.id+":"+l.id,src:"sale",sale:s,ref:l,tag:l.tag,sex:l.sex,breed:l.breed,dob:l.dob,sire:l.sire,dam:l.damTag,year:gxYear(s.date)||gxYear(l.dob),from:(s.name||"Sale")+(l.lot?" — Lot "+l.lot:""),winnings:l.winnings})})});
   (d.ewes||[]).forEach(function(e){(e.babies||[]).forEach(function(b){out.push({uid:"b:"+e.id+":"+b.id,src:"manual",ewe:e,ref:b,tag:b.tag,sex:b.sex,breed:b.breed,dob:b.dob,sire:b.sire,dam:e.tag||e.name,year:gxYear(b.dob)||b.year||"",from:"Added under ewe",winnings:b.winnings})})});
   out.forEach(function(b){b.damKey=ofDamKey(d,b.dam)});return out}
@@ -1158,10 +1168,17 @@ function GxOfEwes(p){var d=p.data,ss=ge.useState(p.focus?p.focus.k:null),sel=ss[
             gxE("div",{key:"b",className:"mt-1 grid grid-cols-2 gap-1"},ofKV("Breed",b.breed),ofKV("Sire",b.sire),ofKV("DOB",gxFmt(b.dob))),
             gxE("div",{key:"w",className:"mt-2"},gxE(Fe,{label:"Notable Winnings"},gxE(GxWinField,{value:b.winnings,onSave:function(v){setWin(b,v)}}))),
             rs.length?gxE("div",{key:"r",className:"mt-1 space-y-0.5"},rs.map(function(r){return gxE("div",{key:r.id,className:"text-xs"},gxE("span",{style:gxPlaceStyle(r.placing)},r.placing||"Shown")," ",gxE("span",{style:{color:"#555"}},[r.show,gxFmt(r.date),r.showedAs].filter(Boolean).join(" · ")))})):null])}))) }),babyForm,form)}
-  var ewes=(d.ewes||[]).slice().sort(function(a,b){return ofCmp(a.tag||a.name,b.tag||b.name)}),loose={};
+  var srt=Object.assign({by:"tag",dir:"asc"},gxGet(GXK.prefs,{}).ofEweSort||{}),nb=function(e){return babies.filter(function(b){return b.damKey==="e:"+e.id}).length};
+  var sv=function(e){return srt.by==="babies"?nb(e):srt.by==="breed"?e.breed:srt.by==="sire"?e.sire:(e.tag||e.name)};
+  var ewes=(d.ewes||[]).slice().sort(function(a,b){var x=sv(a),y=sv(b),bx=x==null||x==="",by_=y==null||y==="";if(bx!==by_)return bx?1:-1;
+    var c=srt.by==="babies"?x-y:ofCmp(x,y);if(srt.dir==="desc")c=-c;return c||ofCmp(a.tag||a.name,b.tag||b.name)}),loose={};
+  var sortBar=(d.ewes||[]).length>1?gxE("div",{className:"flex items-center gap-2 mb-3 flex-wrap"},gxE("span",{className:"text-[11px] uppercase tracking-wider text-neutral-500"},"Sort by"),
+    gxE("select",{"aria-label":"Sort ewes by",value:srt.by,onChange:function(e){gxSetPref("ofEweSort",{by:e.target.value,dir:srt.dir})},className:"px-2 py-1 text-sm outline-none bg-white",style:{border:"1px solid #DDD8CC",borderRadius:"10px",color:Ge}},
+      [["tag","Tag Number"],["breed","Breed"],["sire","Sire"],["babies","Number of Babies"]].map(function(o){return gxE("option",{key:o[0],value:o[0]},o[1])})),
+    gxE("button",{type:"button","aria-label":"Sort direction",onClick:function(){gxSetPref("ofEweSort",{by:srt.by,dir:srt.dir==="asc"?"desc":"asc"})},className:"px-3 py-1 text-sm",style:{border:"1px solid "+Qe,color:Qe,borderRadius:"10px",fontWeight:600}},srt.dir==="asc"?"\u2191 Ascending":"\u2193 Descending")):null;
   babies.forEach(function(b){if(b.damKey&&b.damKey.indexOf("t:")===0){var l=loose[b.damKey]||(loose[b.damKey]={k:b.damKey,dam:b.dam,n:0});l.n++}});var lk=Object.keys(loose);
   return gxE(Gn,null,gxE("div",{className:"flex items-center justify-between mb-3 gap-2"},gxE(mn,null,"Ewes"),gxE("div",{className:"flex gap-2 flex-wrap"},gxE(tt,{variant:"outline",onClick:function(){setImpE(!0)}},"Import Ewe PDF"),gxE(tt,{onClick:function(){setEdit({})}},"+ Add Ewe"))),
-    ewes.length===0?ofEmpty("No ewes yet. Ewes you add here fill in the Dam Sire on Sales lots and collect all of their babies."):gxE("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-2"},ewes.map(function(e){var n=babies.filter(function(b){return b.damKey==="e:"+e.id}).length;
+    sortBar,ewes.length===0?ofEmpty("No ewes yet. Ewes you add here fill in the Dam Sire on Sales lots and collect all of their babies."):gxE("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-2"},ewes.map(function(e){var n=babies.filter(function(b){return b.damKey==="e:"+e.id}).length;
       return gxE("button",{key:e.id,type:"button",onClick:function(){setSel("e:"+e.id)},className:"p-3 text-left",style:{background:$t,border:"1px solid "+He,borderRadius:"10px"}},
         gxE("div",{className:"flex items-center justify-between gap-2"},ofBig((e.tag?"Tag "+e.tag:"")+(e.name?(e.tag?"  ·  ":"")+e.name:"")||"Ewe"),gxE("span",{className:"text-xs",style:{color:Qe,fontWeight:600,whiteSpace:"nowrap"}},n+" bab"+(n===1?"y":"ies")+" ›")),
         gxE("div",{className:"mt-1 space-y-0.5"},ofKV("Breed",e.breed),ofKV("Sire",e.sire),ofKV("Dam Sire",e.damSire),ofKV("DOB",gxFmt(e.dob))))})),
@@ -1221,6 +1238,7 @@ function GxOfSettings(p){var f=p.farm,d=p.data,ns=ge.useState(f.name||""),name=n
 var OF_TABS=[["roster","Roster"],["sales","Sales"],["ewes","Ewes"],["results","Results"],["notes","Notes"],["settings","Settings"]];
 function GxOtherFarms(){useGx(GXOF.list,[]);useGx(GXOF.cur,"");var f=gxOfCur(),ts=ge.useState("roster"),tab=ts[0],setTab=ts[1],fs=ge.useState(null),focus=fs[0],setFocus=fs[1],as=ge.useState(!1),adding=as[0],setAdding=as[1];
   var d=useOf(f&&f.id);
+  ge.useEffect(function(){if(f&&d&&ofNeedsRoster(d))gxOfSave(f.id,function(x){return x})},[f&&f.id,!!d]);
   if(!f)return gxE(Gn,null,gxE(mn,null,"Other Farms"),gxE("div",{className:"text-sm text-neutral-500 mb-4"},"Keep notes on lambs and sales at other farms. Each farm gets its own roster, sales, ewes, results and notes — and its own colors from its logo."),gxE(tt,{onClick:function(){setAdding(!0)}},"+ Add Your First Farm"),adding&&gxE(GxAddFarm,{onClose:function(){setAdding(!1)}}));
   if(!d)return gxE("div",{className:"text-sm text-neutral-400 text-center py-16"},"Loading…");
   var props={farm:f,data:d,save:function(fn){gxOfSave(f.id,fn)},goEwe:function(k){setFocus({k:k,n:Date.now()});setTab("ewes")},focus:focus};
@@ -1382,16 +1400,17 @@ function ofImpDams(d,rows){var out=[],seen={};rows.forEach(function(r){var t=Str
   var ex=ofEweFor(d,t);var o={id:Nr(),tag:t,sire:String(r.damSire||"").trim(),exists:!!ex,on:!ex};seen[k]=o;out.push(o)});return out}
 function GxOfImport(p){
   var d=p.data,sale=p.sale,ss=ge.useState("pick"),step=ss[0],setStep=ss[1],ms=ge.useState(""),msg=ms[0],setMsg=ms[1],rs=ge.useState(null),res=rs[0],setRes=rs[1];
-  var ls=ge.useState([]),rows=ls[0],setRows=ls[1],ks=ge.useState([]),keys=ks[0],setKeys=ks[1],ds=ge.useState([]),dams=ds[0],setDams=ds[1],ns=ge.useState(0),added=ns[0],setAdded=ns[1];
+  var ls=ge.useState([]),rows=ls[0],setRows=ls[1],ks=ge.useState([]),keys=ks[0],setKeys=ks[1],ds=ge.useState([]),dams=ds[0],setDams=ds[1],ns=ge.useState(0),added=ns[0],setAdded=ns[1],bas=ge.useState(""),breedAll=bas[0],setBreedAll=bas[1];
   function dupOf(r){if(!sale)return null;var lots=sale.lots||[];return lots.filter(function(l){return ofImpSame(l.lot,r.lot)})[0]||lots.filter(function(l){return ofImpSame(l.tag,r.tag)})[0]||null}
   async function pick(e){var f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;setStep("busy");setMsg("Opening the PDF…");
     try{await gxLoadSalePdf();var r=await window.gscReadSalePdf(f,function(m){setMsg(m)});setRes(r);
-      if(!r.lots.length){setStep("none");return}
+      if(!r.lots.length&&!(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length)){setStep("none");return}
+      if(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length&&!r.lots.length){setBreedAll(r.eweList.breed||"");setRows(r.eweList.ewes.map(function(e){var o=Object.assign({},e,{_id:Nr()});o._dup=!!ofEweFor(d,e.tag);o._on=!o._dup;return o}));setStep("ewelist");return}
       if(p.mode==="ewes"){setDams(ofImpDams(d,r.lots));setStep("dams");return}
       setKeys(r.extraKeys.map(function(k){return Object.assign({},k)}));
       setRows(r.lots.map(function(l){var o=Object.assign({},l,{_id:Nr()});o._dup=!!dupOf(o);o._on=!o._dup;return o}));setStep("lots")}
     catch(err){setMsg(err&&err.message||String(err));setStep("error")}}
-  function setRow(i,k,v){setRows(rows.map(function(r,j){if(j!==i)return r;var n=Object.assign({},r);n[k]=v;if(k==="lot"||k==="tag"){n._dup=!!dupOf(n);if(n._dup)n._on=!1}if(k==="damTag"){var ew=ofEweFor(d,v);if(ew&&ew.sire&&!n.damSire)n.damSire=ew.sire}return n}))}
+  function setRow(i,k,v){setRows(rows.map(function(r,j){if(j!==i)return r;var n=Object.assign({},r);n[k]=v;if((k==="lot"||k==="tag")&&step!=="ewelist"){n._dup=!!dupOf(n);if(n._dup)n._on=!1}if(k==="tag"&&step==="ewelist"){n._dup=!!ofEweFor(d,v);n._on=!n._dup}if(k==="damTag"){var ew=ofEweFor(d,v);if(ew&&ew.sire&&!n.damSire)n.damSire=ew.sire}return n}))}
   function build(r){var lot={id:Nr(),lot:r.lot||"",tag:r.tag||"",sex:r.sex||"",breed:r.breed||"",dob:r.dob||"",sire:r.sire||"",damTag:r.damTag||"",damSire:r.damSire||"",comments:r.comments||"",showmen:[],myPrice:"",finalPrice:""},extra=[];
     keys.forEach(function(k){var v=r.extra&&r.extra[k.key];if(v==null||v===""||k.use==="ignore")return;if(k.use==="comments")extra.push(k.key+": "+v);else if(!lot[k.use])lot[k.use]=k.use==="sex"?v.replace(/^./,function(c){return c.toUpperCase()}):v});
     if(extra.length)lot.comments=(lot.comments?lot.comments+"\n":"")+extra.join("\n");if(lot.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(lot.dob))lot.comments=(lot.comments?lot.comments+"\n":"")+"DOB: "+lot.dob,lot.dob="";return lot}
@@ -1400,6 +1419,9 @@ function GxOfImport(p){
     p.save(function(x){var s=x.sales.filter(function(z){return z.id===sale.id})[0];if(!s)return x;s.lots=s.lots||[];
       built.forEach(function(l){if(s.lots.some(function(o){return ofImpSame(o.lot,l.lot)||ofImpSame(o.tag,l.tag)}))return;s.lots.push(l)});return x});
     setAdded(built.length);var dm=ofImpDams(d,built);setDams(dm);setStep(dm.some(function(x){return!x.exists})?"dams":"done")}
+  function importEweList(){var pk=rows.filter(function(r){return r._on&&!r._dup&&String(r.tag||"").trim()});if(!pk.length){alert("Nothing checked to import.");return}
+    p.save(function(x){pk.forEach(function(r){if(ofEweFor(x,r.tag))return;x.ewes.push({id:Nr(),tag:String(r.tag).trim(),name:r.name||"",breed:r.breed||breedAll||"",sire:r.sire||"",damSire:r.damSire||"",dob:/^\d{4}-\d{2}-\d{2}$/.test(r.dob||"")?r.dob:"",notes:[r.notes,r.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(r.dob)?"Born: "+r.dob:""].filter(Boolean).join(" \u00b7 "),babies:[]})});return x});
+    setAdded(pk.length);setStep("done")}
   function importEwes(){var add=dams.filter(function(x){return x.on&&!x.exists});
     if(add.length)p.save(function(x){add.forEach(function(a){if(ofEweFor(x,a.tag))return;x.ewes.push({id:Nr(),tag:a.tag,name:"",sire:a.sire,damSire:"",dob:"",notes:p.mode==="ewes"?"Added from a sale catalog PDF":"Added from "+(sale&&sale.name||"a sale catalog"),babies:[]})});return x});
     setAdded(function(n){return p.mode==="ewes"?add.length:n});setDams(dams.map(function(x){return Object.assign({},x,{done:x.on&&!x.exists})}));setStep("done")}
@@ -1410,7 +1432,7 @@ function GxOfImport(p){
     gxE("input",Object.assign({},inp,{type:t||"text",value:r[k]||"",onChange:function(e){setRow(i,k,e.target.value)}})))}
   var title=p.mode==="ewes"?"Import Ewe PDF":"Import Sale PDF";
   var body;
-  if(step==="pick")body=gxE("div",null,gxNote(p.mode==="ewes"?"Pick a sale catalog PDF. The app pulls out each lot's dam (Dam tag + Dam's Sire) so you can add them as ewes. Nothing you've already entered is changed.":"Pick the sale's catalog PDF. You'll see everything it found and can fix or uncheck lots before anything is saved. Lots already in this sale are skipped — nothing you've entered is changed."),
+  if(step==="pick")body=gxE("div",null,gxNote(p.mode==="ewes"?"Pick a farm's ewe list (Tag / Sire / Notes columns) or a sale catalog \u2014 from a catalog the app pulls out each lot's dam. You'll check everything before it's added, and ewes you already have are skipped. Nothing you've already entered is changed.":"Pick the sale's catalog PDF. You'll see everything it found and can fix or uncheck lots before anything is saved. Lots already in this sale are skipped — nothing you've entered is changed."),
     gxE("input",{type:"file",accept:"application/pdf,.pdf",onChange:pick,className:"text-sm"}));
   else if(step==="busy")body=gxE("div",{className:"text-sm py-6 text-center",style:{color:Ge}},msg);
   else if(step==="error")body=gxE("div",null,gxE("div",{className:"text-sm mb-3",style:{color:"#8C4A4A"}},"Couldn't read that PDF: "+msg),gxBtn("Try another file",function(){setStep("pick")}));
@@ -1428,6 +1450,20 @@ function GxOfImport(p){
         r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"lot","Lot"),fld(i,r,"tag","Tag"),fld(i,r,"sex","Sex","sex"),fld(i,r,"breed","Breed"),fld(i,r,"dob","DOB","date"),fld(i,r,"sire","Sire"),fld(i,r,"damTag","Dam Tag"),fld(i,r,"damSire","Dam Sire"),
           gxE("div",{className:"col-span-2 md:col-span-2"},fld(i,r,"comments","Comments","area"))))})),
       gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.onClose},"Cancel"),gxE(tt,{onClick:importLots,disabled:!n},"Import "+n+" Lot"+(n===1?"":"s"))))}
+  else if(step==="ewelist"){var ne=rows.filter(function(r){return r._on&&!r._dup}).length,dupN=rows.filter(function(r){return r._dup}).length;
+    body=gxE("div",null,
+      res&&res.source==="scan"?gxE("div",{className:"text-xs mb-2 p-2",style:{background:"#FFF4E0",borderRadius:"8px",color:"#7A5200"}},"This was a scanned list, so some words may be misread \u2014 check each ewe."):null,
+      gxE("div",{className:"text-xs text-neutral-500 mb-2"},"Found "+rows.length+" ewe"+(rows.length===1?"":"s")+(res&&res.eweList&&res.eweList.title?" in \u201c"+res.eweList.title+"\u201d":"")+(dupN?" \u00b7 "+dupN+" already in Ewes (skipped)":"")+". Tags listed twice in the PDF were combined."),
+      gxE("label",{className:"block mb-3 p-2",style:{background:$t,borderRadius:"10px",border:"1px solid "+He}},gxE("span",{className:"text-[11px] uppercase tracking-wider",style:{color:Qe,fontWeight:700}},"Breed for all of these"),
+        gxE("input",Object.assign({},inp,{value:breedAll,list:"ofimp-breeds",placeholder:"e.g. Southdown",onChange:function(e){setBreedAll(e.target.value)}})),gxE("datalist",{id:"ofimp-breeds"},ofBreeds(d).map(function(b){return gxE("option",{key:b,value:b})})),
+        gxE("span",{className:"text-[11px] text-neutral-500"},"Used for any ewe whose own Breed box is left blank.")),
+      gxE("div",{className:"space-y-2"},rows.map(function(r,i){return gxE("div",{key:r._id,className:"p-2",style:{background:r._dup?"#F1EFEA":"#FFFFFF",border:"1px solid "+(r._on?Qe:"#DDD8CC"),borderRadius:"10px",opacity:r._on||r._dup?1:.6}},
+        gxE("label",{className:"flex items-center gap-2 mb-1"},gxE("input",{type:"checkbox",checked:!!r._on,disabled:r._dup,onChange:function(){setRow(i,"_on",!r._on)},style:{width:18,height:18,accentColor:Qe}}),
+          gxE("span",{className:"text-sm",style:{color:Ge,fontWeight:700}},"Tag "+(r.tag||"?")+(r.sire?" \u00b7 "+r.sire:"")),r._dup?gxE("span",{className:"text-[11px]",style:{color:"#8C4A4A"}},"Already in Ewes \u2014 skipped"):r.twice?gxE("span",{className:"text-[11px] text-neutral-500"},"listed "+(r.twice+1)+"\u00d7 in PDF"):null),
+        r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"tag","Tag"),fld(i,r,"name","Name"),
+          gxE("label",{key:"br",className:"block"},gxE("span",{className:"text-[10px] uppercase tracking-wider text-neutral-500"},"Breed"),gxE("input",Object.assign({},inp,{value:r.breed||"",placeholder:breedAll||"",list:"ofimp-breeds",onChange:function(e){setRow(i,"breed",e.target.value)}}))),
+          fld(i,r,"sire","Sire"),fld(i,r,"damSire","Dam Sire"),fld(i,r,"dob","DOB"),gxE("div",{className:"col-span-2 md:col-span-2"},fld(i,r,"notes","Notes","area"))))})),
+      gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.onClose},"Cancel"),gxE(tt,{onClick:importEweList,disabled:!ne},"Add "+ne+" Ewe"+(ne===1?"":"s"))))}
   else if(step==="dams"){var nn=dams.filter(function(x){return x.on&&!x.exists}).length;
     body=gxE("div",null,
       p.mode!=="ewes"?gxE("div",{className:"text-sm mb-2",style:{color:"#2E7D32",fontWeight:600}},"✓ Added "+added+" lot"+(added===1?"":"s")+" to "+(sale&&sale.name||"the sale")+"."):null,
