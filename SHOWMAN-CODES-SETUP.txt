@@ -1,0 +1,36 @@
+GEHRET SHEEP CO — SHOWMAN CODES SETUP (v56, real site)
+Do these in order. Steps 1 and 2 are one-time, in the Firebase console for the Gehret project.
+
+1) REPLACE THE SECURITY RULES  (do this FIRST)
+   - console.firebase.google.com -> your Gehret Sheep Co project
+   - Build -> Firestore Database -> Rules tab
+   - Click in the rules box, select ALL of it (Ctrl/Cmd+A) and delete it, so the box is empty
+   - Paste everything from firestore.rules (included in the zip) -> Publish
+   Why first: step 2 lets showman phones sign in. These rules are what keep a signed-in
+   showman phone out of your full records.
+
+2) TURN ON ANONYMOUS SIGN-IN
+   - Build -> Authentication -> Sign-in method tab -> Add new provider -> Anonymous -> Enable -> Save
+   (Your Email/Password sign-in stays on — that's your passcode.)
+
+3) UPLOAD THE APP FILES
+   - Upload everything in the zip to the gehretsheepco repo as usual (new: showman.js;
+     firestore.rules and this file can be uploaded too, they're harmless).
+   - Open the app on your phone and tap "New version ready" if it shows.
+
+4) MAKE A CODE
+   - Show Lambs -> Roster -> Exhibitors -> edit (pencil) a showman -> Showman Code -> type it -> Save Exhibitor
+     Use 6+ letters and numbers (e.g. AVA2026). Put the same code on siblings' cards to share it.
+     A code only covers the years you type it in.
+   - Show Lambs -> Settings -> Showman Codes -> tap the code's "New" chip (or Permissions) ->
+     pick Hidden / View / Edit for each tab -> Save & Turn On.
+     A code does NOT work until this is saved.
+   - Copy Invite (or Share) -> paste into a text to the showman.
+
+5) THE SHOWMAN
+   - Opens the link, taps Open, types the code where it asks for the passcode.
+   - Stays unlocked on that phone. Settings -> "Leave showman view" signs them out.
+
+Turning a code Off: they keep a view-only copy and can't add anything.
+Your phone has to be online for showman entries to land in your records (it picks them up
+the next time any of your passcode phones opens the app).

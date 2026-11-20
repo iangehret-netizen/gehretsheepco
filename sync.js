@@ -40,6 +40,11 @@
   var META_PREFIX = "gsc:__syncmeta:";
   var SYNC_KEY_PREFIX = "sheepwrld:"; // only sync app data, not misc local keys
 
+  // v55: showman mode. Set when a showman code (not the passcode) unlocked this phone.
+  var SM = null;
+  try { SM = JSON.parse(localStorage.getItem("gsc:__sm") || "null"); } catch (e) {}
+  window.__gscShowman = SM;
+
   var pendingPushQueue = [];
   var fbApp, auth, db;
   var authReady = false;
@@ -53,9 +58,11 @@
   // 1. Synchronous bridge — must exist before bundle.js runs.
   // ---------------------------------------------------------------------
   window.__gscSyncPush = function (key, value) {
+    if (SM) { if (window.__gscSMLocal) window.__gscSMLocal(key, value); return; } // showman phones never write to the owner's records
     if (typeof key !== "string" || key.indexOf(SYNC_KEY_PREFIX) !== 0) return;
     pendingPushQueue.push({ key: key, value: value, ts: Date.now() });
     flushQueue();
+    if (window.__gscSMOwnerTouch) window.__gscSMOwnerTouch(key);
   };
 
   function flushQueue() {
@@ -105,7 +112,7 @@
       "color:#fff;padding:24px;box-sizing:border-box;text-align:center;";
     overlay.innerHTML =
       '<div style="font-size:20px;font-weight:600;">Gehret Sheep Co</div>' +
-      '<div style="font-size:14px;color:#aaa;max-width:280px;">Enter the passcode to unlock this device.</div>' +
+      '<div style="font-size:14px;color:#aaa;max-width:280px;">Enter the passcode or your showman code.</div>' +
       '<input id="gsc-sync-passcode" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" ' +
       'style="width:220px;padding:12px 14px;border-radius:8px;border:1px solid #444;background:#2A2A2A;color:#fff;' +
       'font-size:16px;text-align:center;" placeholder="Passcode" />' +
@@ -183,7 +190,11 @@
     if (!auth) return;
     setOverlayError("");
     setOverlayBusy(true);
-    window.__fb
+    // A showman code is checked first; if it isn't one, try it as the owner passcode.
+    var tryCode = window.__gscSMTryCode ? window.__gscSMTryCode(passcode, auth, db) : Promise.resolve(false);
+    tryCode.catch(function (e) { console.error("[GSC Sync] Showman code check failed:", e); return false; }).then(function (isShowman) {
+    if (isShowman) return;
+    return window.__fb
       .signInWithEmailAndPassword(auth, SYNC_EMAIL, passcode)
       .catch(function (err) {
         setOverlayBusy(false);
@@ -196,9 +207,10 @@
         } else if (code === "auth/too-many-requests") {
           setOverlayError("Too many attempts. Wait a moment and try again.");
         } else {
-          setOverlayError("Incorrect passcode. Try again.");
+          setOverlayError("Incorrect passcode or code. Try again.");
         }
       });
+    });
   }
 
   function pushToFirestore(key, value, ts) {
@@ -269,6 +281,7 @@
         }
 
         if (sawChange) showUpdateBanner();
+        if (sawChange && window.__gscSMOwnerTouch) window.__gscSMOwnerTouch("*");
         setPillState(navigator.onLine === false ? "offline" : "synced");
       },
       function (err) {
@@ -310,12 +323,25 @@
         auth,
         function (user) {
           currentUser = user;
+          if (SM) {
+            // Showman phone: stays unlocked with an anonymous sign-in; only its own code's data is read.
+            hideOverlay();
+            if (user) { authReady = true; setPillState("syncing"); if (window.__gscSMStart) window.__gscSMStart(db, user); }
+            else { setPillState("offline"); window.__fb.signInAnonymously(auth).catch(function (e) { console.error("[GSC Sync] Showman sign-in:", e); }); }
+            return;
+          }
+          if (user && user.isAnonymous) {
+            // leftover sign-in from checking a showman code; ignore while a check is running
+            if (!window.__gscSMChecking && auth.currentUser && auth.currentUser.isAnonymous) window.__fb.signOut(auth);
+            return;
+          }
           if (user) {
             authReady = true;
             hideOverlay();
             setPillState("syncing");
             startListening();
             flushQueue();
+            if (window.__gscSMOwnerStart) window.__gscSMOwnerStart(db);
           } else {
             authReady = false;
             setPillState("locked");
@@ -346,6 +372,9 @@
   pillEl = buildStatusPill();
   overlayEl = buildOverlay();
   setPillState("locked");
+  if (SM) hideOverlay();
+
+  window.__gscPill = setPillState;
 
   window.addEventListener("online", function () {
     if (currentUser) setPillState("syncing");

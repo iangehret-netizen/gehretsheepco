@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Your passcode login (the hidden sync account).
+    function isOwner() {
+      return request.auth != null && request.auth.token.email == 'iangehret@gmail.com';
+    }
+
+    // All of your records — only phones unlocked with your passcode.
+    match /gsc_sync/{key} {
+      allow read, write: if isOwner();
+    }
+
+    // Showman codes. Each code is its own document, named by a scrambled form of the code,
+    // so a showman's phone can only open the one it has the code for (no browsing others).
+    match /gsc_sm/{code} {
+      allow get: if request.auth != null;
+      allow list, create, update, delete: if isOwner();
+
+      // The copy of that showman's sheep, one document per year.
+      match /years/{year} {
+        allow get, list: if request.auth != null;
+        allow create, update, delete: if isOwner();
+      }
+
+      // Entries a showman adds. They can only drop new ones in while the code is turned on;
+      // they can't read, change or delete anything here. Your phone checks each one against
+      // the code's permissions before it touches your records.
+      match /inbox/{entry} {
+        allow create: if request.auth != null
+          && get(/databases/$(database)/documents/gsc_sm/$(code)).data.active == true
+          && request.resource.data.keys().hasOnly(['op', 'ts', 'by'])
+          && request.resource.data.op is string
+          && request.resource.data.op.size() < 20000;
+        allow get, delete: if isOwner();
+      }
+    }
+
+    // Lets your phone watch every code's inbox at once.
+    match /{path=**}/inbox/{entry} {
+      allow read, delete: if isOwner();
+    }
+  }
+}

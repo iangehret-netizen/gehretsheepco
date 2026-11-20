@@ -198,7 +198,7 @@
     var sheep = d.sheep || [], out = [];
     var fall = /fall/i.test(d.year || "");
     out.push({
-      type: "table", name: "Showmen", title: str(d.year) + " Showmen",
+      type: "table", key: "roster:showmen", name: "Showmen", title: str(d.year) + " Showmen",
       widths: [100, 50, 70, 60, 75, 85, 50],
       headers: ["Name", "4H Age", "County", "# of Sheep", "Target Show", "Target Show Date", fall ? "NAILE?" : "OSF?"],
       rows: (d.exhibitors || []).map(function (e) {
@@ -209,7 +209,7 @@
       fs: 8, minRh: 30, headerH: 18, boldCols: [0]
     });
     out.push({
-      type: "table", name: "Roster",
+      type: "table", key: "roster:roster", name: "Roster", title: "Roster",
       widths: [46, 30, 36, 30, 42, 38, 48, 58, 36, 34, 46, 36, 60],
       headers: ["Name", "Sex", "L Ear", "R Ear", "Birthdate", "Breed", "Sire", "Dam", "Breeder", "Price", "Showman", "County", "Additional Notes"],
       rows: sheep.map(function (s) {
@@ -217,11 +217,11 @@
       }),
       fs: 5.5, hfs: 5.5, minRh: 22, headerH: 13, boldCols: [0]
     });
-    if (sheep.length) out.push({ type: "weights", name: "Weights", sheep: sheep, weights: d.weights || {} });
+    if (sheep.length) out.push({ type: "weights", key: "weights", name: "Weights", title: "Weights", sheep: sheep, weights: d.weights || {} });
     var shows = sortedShows(d);
     if (shows.length) {
       out.push({
-        type: "table", name: "Show Calendar", title: "SHOWS", titleFs: 7,
+        type: "table", key: "calendar", name: "Show Calendar", title: "SHOWS", titleFs: 7,
         widths: [70, 190, 90, 35, 155],
         headers: ["Date", "Show Name", "City", "State", "Judge"],
         rows: shows.map(function (s) { return [fmtLong(s.date), s.name, s.city, s.state, s.judge]; }),
@@ -244,7 +244,7 @@
     Object.keys(groups).forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
     order.forEach(function (name) {
       out.push({
-        type: "table", name: name, band: name,
+        type: "table", key: "results:" + name, name: name, band: name,
         widths: [110, 100, 150, 180],
         headers: ["Showman", "Sheep", "Showed As", "Placing"],
         rows: groups[name].map(function (r) { return [r.exhibitor, sheepName(sheep, r.sheepId, r.sheepName), r.showedAs, r.placing]; }),
@@ -262,7 +262,7 @@
         exRows.push([nm, sheepName(sheep, r.sheepId, r.sheepName), r.showName, sh ? fmtFull(sh.date) : "", r.showedAs, r.placing]);
       });
     });
-    if (exRows.length) out.push({ type: "table", name: "Exhibitor Placings", title: "Placings by Exhibitor", widths: [80, 70, 130, 55, 90, 110], headers: ["Exhibitor", "Lamb", "Show", "Date", "Showed As", "Placing"], rows: exRows, fs: 6.5, hfs: 7, minRh: 20, headerH: 15, boldCols: [0] });
+    if (exRows.length) out.push({ type: "table", key: "results:__byex", name: "Exhibitor Placings", title: "Placings by Exhibitor", widths: [80, 70, 130, 55, 90, 110], headers: ["Exhibitor", "Lamb", "Show", "Date", "Showed As", "Placing"], rows: exRows, fs: 6.5, hfs: 7, minRh: 20, headerH: 15, boldCols: [0] });
     // Excel-only extras
     var feed = [];
     sheep.forEach(function (s) {
@@ -273,7 +273,7 @@
         });
       });
     });
-    out.push({ type: "table", name: "Feed Log", pdf: false, headers: ["Sheep", "Date", "Type", "Product", "Amount"], widths: [100, 70, 80, 150, 140], rows: feed });
+    out.push({ type: "table", key: "feeds", name: "Feed Log", title: "Feed Log", pdf: false, headers: ["Sheep", "Date", "Type", "Product", "Amount"], widths: [100, 70, 80, 150, 140], rows: feed });
     var hl = [];
     sheep.forEach(function (s) {
       ((d.health || {})[s.id] || []).forEach(function (rt) {
@@ -281,7 +281,7 @@
           rt.withdrawalDays || "", rt.withdrawalDays ? addDays(rt.date, +rt.withdrawalDays) : "", rt.notes]);
       });
     });
-    out.push({ type: "table", name: "Health Records", pdf: false, headers: ["Sheep", "Date", "Type", "Product", "Dose", "Withdrawal (days)", "Clears On", "Notes"], widths: [80, 60, 60, 90, 60, 60, 60, 70], rows: hl });
+    out.push({ type: "table", key: "health", name: "Health Records", title: "Health Records", pdf: false, headers: ["Sheep", "Date", "Type", "Product", "Dose", "Withdrawal (days)", "Clears On", "Notes"], widths: [80, 60, 60, 90, 60, 60, 60, 70], rows: hl });
     return out;
   }
 
@@ -291,7 +291,7 @@
       return [s.name, s.sex, s.lEar, s.rEar, fmtFull(s.birthdate), s.breed, s.sire, s.dam, s.breeder, s.born, s.reared, s.notes];
     });
     out.push({
-      type: "table", name: "Herd Roster", title: "Herd Roster",
+      type: "table", key: "roster", name: "Herd Roster", title: "Herd Roster",
       widths: [52, 28, 36, 36, 46, 44, 52, 52, 40, 26, 30, 98],
       headers: ["Name", "Sex", "L Ear", "R Ear", "Birthdate", "Breed", "Sire", "Dam", "Breeder", "Born", "Reared", "Notes"],
       rows: roster, fs: 6, hfs: 6, minRh: 22, headerH: 13, boldCols: [0]
@@ -301,7 +301,7 @@
         b.ultrasound, fmtFull(b.actualLambing), b.carriedToTerm, b.bornAlive, b.males, b.females];
     });
     if (br.length) out.push({
-      type: "table", name: "Breeding", title: "Breeding",
+      type: "table", key: "breeding", name: "Breeding", title: "Breeding",
       widths: [60, 40, 48, 36, 62, 54, 50, 54, 30, 40, 33, 33],
       headers: ["Ewe", "Tag", "Bred", "Via", "Buck", "Exp. Lambing", "Ultrasound", "Actual Lambing", "CTT", "Born Alive", "M", "F"],
       rows: br, fs: 6, hfs: 6, minRh: 22, headerH: 15, boldCols: [0]
@@ -310,7 +310,7 @@
       return [l.tag, l.sex, l.sire, l.dam, fmtFull(l.dob), l.soldTo, l.price, l.showedBy, l.notes];
     });
     if (lb.length) out.push({
-      type: "table", name: "Lambing", title: "Lambing",
+      type: "table", key: "lambing", name: "Lambing", title: "Lambing",
       widths: [48, 28, 64, 64, 46, 58, 36, 56, 140],
       headers: ["Tag", "Sex", "Sire", "Dam", "DOB", "Sold To", "Price", "Showed By", "Notes"],
       rows: lb, fs: 6.5, hfs: 6.5, minRh: 22, headerH: 15, boldCols: [0]
@@ -320,7 +320,7 @@
       return [r.showName, l.dam, l.tag, r.showedAs, r.placing];
     });
     if (rs.length) out.push({
-      type: "table", name: "Results", title: "Results",
+      type: "table", key: "results", name: "Results", title: "Results",
       widths: [150, 90, 60, 120, 120],
       headers: ["Show", "Dam", "Lamb", "Showed As", "Placing"],
       rows: rs, fs: 7, hfs: 7.5, minRh: 22, headerH: 15
@@ -329,10 +329,10 @@
     Object.keys(d.herdHealth || {}).forEach(function (id) { var a = allA.filter(function (z) { return z.id === id; })[0]; ((d.herdHealth || {})[id] || []).forEach(function (rt) {
       hh.push([a ? a.name : "(removed animal)", fmtFull(rt.date), rt.type, rt.product, ((rt.doseGiven || "") + " " + (rt.doseUnit || "")).trim(), rt.withdrawalDays || "", rt.withdrawalDays ? addDays(rt.date, +rt.withdrawalDays) : "", rt.notes]); }); });
     hh.sort(function (x, y) { return dateKey(y[1]) - dateKey(x[1]); });
-    if (hh.length) out.push({ type: "table", name: "Herd Health", title: "Herd Health", widths: [70, 50, 55, 90, 50, 45, 55, 125], headers: ["Animal", "Date", "Type", "Product", "Dose", "Withdrawal", "Clears", "Notes"], rows: hh, fs: 6.5, hfs: 6.5, minRh: 20, headerH: 15, boldCols: [0] });
+    if (hh.length) out.push({ type: "table", key: "hhealth", name: "Herd Health", title: "Herd Health", widths: [70, 50, 55, 90, 50, 45, 55, 125], headers: ["Animal", "Date", "Type", "Product", "Dose", "Withdrawal", "Clears", "Notes"], rows: hh, fs: 6.5, hfs: 6.5, minRh: 20, headerH: 15, boldCols: [0] });
     var so = (d.sold || []).map(function (s) { return [s.name, s.breed, s.sire, s.dam, fmtFull(s.soldDate)]; });
     if (so.length) out.push({
-      type: "table", name: "Sold or Removed", title: "Sold / Removed",
+      type: "table", key: "soldewes", name: "Sold or Removed", title: "Sold / Removed",
       widths: [120, 100, 100, 120, 100],
       headers: ["Name", "Breed", "Sire", "Dam", "Sold Date"],
       rows: so, fs: 7, hfs: 7.5, minRh: 22, headerH: 15, boldCols: [0]
@@ -365,7 +365,8 @@
   function buildWeights(doc, sec) {
     var sheep = sec.sheep, dates = weightDates(sec);
     var NAMEW = 62, DW = 27, perPage = Math.floor((USABLE - NAMEW) / DW);
-    var rowH = 22, headerH = 15, rowsPerPage = Math.floor((PH - 2 * M - 10 - headerH) / rowH);
+    var tH = sec.title ? 22 : 0;
+    var rowH = 22, headerH = 15, rowsPerPage = Math.floor((PH - 2 * M - 10 - headerH - tH) / rowH);
     var dateChunks = [];
     for (var i = 0; i < Math.max(dates.length, 1); i += perPage) dateChunks.push(dates.slice(i, i + perPage));
     dateChunks.forEach(function (chunk) {
@@ -377,6 +378,7 @@
         doc.addPage();
         var y = M + 10;
         var x = (PW - widths.reduce(function (a, b) { return a + b; }, 0)) / 2;
+        if (tH) { doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0); doc.text(sec.title, PW / 2, y + 8, { align: "center", baseline: "middle" }); y += tH; }
         drawHeader(doc, x, y, widths, headers, 6, headerH);
         y += headerH;
         sheep.slice(r, r + rowsPerPage).forEach(function (s) {
@@ -408,9 +410,9 @@
     used[n.toLowerCase()] = 1;
     return n;
   }
-  window.gscSheets = function (kind, data) {
+  function sheetsFrom(sections) {
     var used = {}, out = [];
-    buildSections(kind, data).forEach(function (sec) {
+    sections.forEach(function (sec) {
       var aoa = [], cols;
       if (sec.type === "weights") {
         var dates = weightDates(sec);
@@ -436,6 +438,22 @@
       out.push({ name: safeSheetName(sec.name, used), aoa: aoa, cols: cols });
     });
     return out;
+  }
+  window.gscSheets = function (kind, data) { return sheetsFrom(buildSections(kind, data)); };
+  window.gscPacketSheets = sheetsFrom;
+
+  // v52: export picker — build one PDF from any mix of sections (Show Lambs, Herd, Other Farms).
+  window.gscPacketPdf = function (sections, name) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert("PDF engine didn't load. Open the app once with a connection, then try again.");
+      return Promise.resolve();
+    }
+    var doc = new window.jspdf.jsPDF({ unit: "pt", format: "letter" });
+    return loadImage("./logo-pdf.png").catch(function () { return null; }).then(function (logo) {
+      buildCover(doc, logo);
+      sections.forEach(function (sec) { renderSection(doc, Object.assign({}, sec, { pdf: true })); });
+      doc.save(name || "Gehret Sheep Co.pdf");
+    });
   };
 
   window.gscExportPacket = function (data, kind) {

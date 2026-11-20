@@ -31,6 +31,37 @@
     #gsc-cover button { font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #1B1B1B; background: linear-gradient(180deg, #E4CC96, #B8963F); border: 0; border-radius: 999px; padding: 15px 56px; min-height: 48px; cursor: pointer; box-shadow: 0 6px 22px rgba(0,0,0,.45); }
     #gsc-cover button:active { transform: scale(.97); }
 
+    /* v54: chosen font options B (bolder buttons), C (bigger gold subheadings), E (bold plain card headings) */
+    .gx-rootbar > button, .gx-tabs > button { font-weight: 600 !important; }
+    .gx-rootbar > button[style*="font-weight: 700"], .gx-tabs > button[style*="font-weight: 600"] { font-weight: 800 !important; }
+    .gx-h { font-size: 16px !important; text-transform: none !important; letter-spacing: 0 !important; color: #1B1B1B !important; font-weight: 700 !important; }
+    .gx-sub { font-size: 13.5px !important; font-weight: 800 !important; letter-spacing: .12em !important; }
+    /* v55: showman view */
+    body.gx-sm .gx-hdr button:has(svg.lucide-plus) { display: none !important; }
+    body.gx-sm.gx-tab-roster .gx-body button:has(svg.lucide-plus),
+    body.gx-sm.gx-tab-roster .gx-body button:has(svg.lucide-trash-2),
+    body.gx-sm.gx-tab-roster .gx-body button:has(svg.lucide-copy),
+    body.gx-ro .gx-body button:has(svg.lucide-plus), body.gx-ro .gx-body button:has(svg.lucide-pencil),
+    body.gx-ro .gx-body button:has(svg.lucide-trash-2), body.gx-ro .gx-body button:has(svg.lucide-copy),
+    body.gx-ro .gx-body button:has(svg.lucide-save), body.gx-ro .gx-body button[title="Delete"] { display: none !important; }
+    body.gx-sm .gx-card:has(.gx-exh-mark) button:has(svg.lucide-pencil) { display: none !important; }
+    body.gx-nowd .gx-wd, body.gx-nowd .gx-target, body.gx-wdro .gx-wd { display: none !important; }
+    body.gx-wdro .gx-target input { pointer-events: none; background: #F3F1EC !important; }
+    /* v53: tighter phone layout (computer/tablet unchanged) */
+    @media (max-width: 767px) {
+      .gx-hdr { padding-top: 12px !important; padding-bottom: 12px !important; }
+      .gx-hdr > .flex.items-start { gap: 10px !important; }
+      .gx-rootbar { margin-top: 12px !important; gap: 6px !important; }
+      .gx-rootbar > button { padding-left: 6px !important; padding-right: 6px !important; padding-top: 8px !important; padding-bottom: 8px !important; white-space: nowrap; }
+      .gx-body { padding-top: 12px !important; padding-left: 10px !important; padding-right: 10px !important; }
+      .gx-tabs { flex-wrap: nowrap !important; overflow-x: auto; margin: 0 -10px 12px !important; padding: 0 10px 2px; gap: 6px !important; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+      .gx-tabs::-webkit-scrollbar { display: none; }
+      .gx-tabs > button { flex-shrink: 0; white-space: nowrap; padding-left: 12px !important; padding-right: 12px !important; min-height: 38px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+      .gx-card { padding: 12px !important; }
+      .gx-h { margin-bottom: 10px !important; }
+      .gx-body .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 12px !important; }
+      .gx-body .pb-16 { padding-bottom: 24px !important; }
+    }
   </style>
 </head>
 <body>
@@ -80,6 +111,7 @@
   </script>
   <script src="./firebase-vendor.js"></script>
   <script src="./sync.js"></script>
+  <script src="./showman.js"></script>
   <script src="./bundle.js"></script>
   <script>
     // Registers the service worker so the app shell (HTML/CSS/JS/icons) is cached

@@ -1,10 +1,11 @@
-const CACHE_NAME = "gsc-app-v51";
+const CACHE_NAME = "gsc-app-v56";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
   "./bundle.js",
   "./firebase-vendor.js",
   "./sync.js",
+  "./showman.js",
   "./jspdf.umd.min.js",
   "./pdfpacket.js",
   "./logo-cover.png",
@@ -28,7 +29,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k.indexOf("gsc-app-") === 0 && k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
