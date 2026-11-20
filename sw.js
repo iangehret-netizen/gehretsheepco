@@ -1,4 +1,4 @@
-const CACHE_NAME = "gsc-app-v57";
+const CACHE_NAME = "gsc-app-v59";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -8,6 +8,9 @@ const ASSETS_TO_CACHE = [
   "./showman.js",
   "./jspdf.umd.min.js",
   "./pdfpacket.js",
+  "./salepdf.js",
+  "./pdf.min.js",
+  "./pdf.worker.min.js",
   "./logo-cover.png",
   "./logo-pdf.png",
   "./tailwind.css",
