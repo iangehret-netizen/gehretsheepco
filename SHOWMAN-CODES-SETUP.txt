@@ -1,4 +1,4 @@
-GEHRET SHEEP CO — SHOWMAN CODES SETUP (v57, real site)
+GEHRET SHEEP CO — SHOWMAN CODES SETUP (v65, real site)
 Do these in order. Steps 1 and 2 are one-time, in the Firebase console for the Gehret project.
 
 1) REPLACE THE SECURITY RULES  (do this FIRST)
@@ -32,5 +32,14 @@ Do these in order. Steps 1 and 2 are one-time, in the Firebase console for the G
    - Stays unlocked on that phone. Settings -> "Leave showman view" signs them out.
 
 Turning a code Off: they keep a view-only copy and can't add anything.
+
+APPROVING ENTRIES (v64)
+   - A showman's phone holds their entries and sends them every 15 minutes while the app is
+     open (or right away with Settings -> Send now).
+   - Nothing goes into your records until you approve it: Show Lambs -> Settings ->
+     Waiting for Your Approval -> tap the check to approve or the X to deny (or Approve all / Deny all).
+   - Denied entries simply disappear from the showman's phone.
+   - Your phone pulls in showman entries only when you open Show Lambs -> Settings or tap Check now.
+   - A showman's phone pauses syncing after 30 minutes without a tap and resumes when touched.
 Your phone has to be online for showman entries to land in your records (it picks them up
 the next time any of your passcode phones opens the app).

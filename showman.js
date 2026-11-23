@@ -205,6 +205,42 @@
     log.push(entry); if (log.length > 500) log = log.slice(-500);
     pushKey("sheepwrld:showmanlog", log); return true;
   }
+  // v64: showman entries wait for the owner's approval in sheepwrld:showmanpending
+  function pendList() { return lsGet("sheepwrld:showmanpending") || []; }
+  function sameEntry(a, b) {
+    if (a.code !== b.code || a.y !== b.y || a.k !== b.op.k || a.sid !== b.op.sid) return false;
+    if (a.k === "sheep") return true;
+    return a.e && b.op.e && a.e.id === b.op.e.id;
+  }
+  function queueForApproval(code, label, op, sheepName) {
+    var pend = pendList(), log = lsGet("sheepwrld:showmanlog") || [];
+    if (pend.some(function (x) { return x.id === op.id; }) || log.some(function (l) { return l.id === op.id; })) return;
+    var probe = { code: code, y: op.y, k: op.k, sid: op.sid, e: op.e }, prev = pend.filter(function (x) { return sameEntry(probe, x); })[0];
+    var hidden = function (why) { addLog({ id: op.id, ts: Date.now(), code: code, label: label, y: op.y, k: op.k, a: op.a, sid: op.sid, sheep: sheepName, text: summary(op), seen: true, hidden: true, rejected: why }); };
+    if (prev && op.k !== "sheep" && op.a === "del" && prev.op.a === "add") {
+      // they deleted something you never approved: it never happened
+      pend = pend.filter(function (x) { return x !== prev; });
+      addLog({ id: prev.id, ts: Date.now(), code: code, label: label, y: prev.y, k: prev.op.k, a: prev.op.a, sid: prev.op.sid, sheep: prev.sheep, text: prev.text, seen: true, hidden: true, rejected: "withdrawn" });
+      hidden("withdrawn");
+    } else if (prev) {
+      if (op.k === "sheep") prev.op.patch = Object.assign({}, prev.op.patch, op.patch);
+      else if (op.a === "del") prev.op = Object.assign({}, op);
+      else prev.op.e = op.e;
+      prev.text = summary(prev.op); prev.ts = Date.now();
+      hidden("combined");
+    } else {
+      pend.push({ id: op.id, ts: Date.now(), code: code, label: label, y: op.y, sid: op.sid, sheep: sheepName, text: summary(op, sheepName), op: op });
+    }
+    pushKey("sheepwrld:showmanpending", pend);
+  }
+  function applyApproved(x) {
+    var op = x.op, key = "sheepwrld:showbarn:" + op.y, d = lsGet(key);
+    if (!d) return { ok: false, msg: "that year is gone" };
+    if (!(d.sheep || []).some(function (s) { return s.id === op.sid; })) return { ok: false, msg: "sheep no longer in " + op.y };
+    var res = applyOp(d, op);
+    if (res.ok) pushKey(key, d);
+    return res;
+  }
   async function handleInbox(docSnap) {
     var FB = window.__fb, ref = docSnap.ref, h = ref.parent.parent.id, code = hashToCode[h];
     if (!code) { await publishAll(); code = hashToCode[h]; }
@@ -214,7 +250,7 @@
     var conf = cfg().codes[code], f = scan()[code];
     var label = f ? f.names.join(" & ") : code;
     op.by = "sm:" + h.slice(0, 10); op.byName = label; // who entered it comes from the code, never from the phone
-    var res = { ok: false, msg: "code is off" }, sheepName = "";
+    var res = { ok: false, msg: "code is off" }, sheepName = "", ok = false;
     if (conf && conf.setup && conf.on && f && f.years[op.y]) {
       var key = "sheepwrld:showbarn:" + op.y, d = lsGet(key) || {};
       var mineSheep = (d.sheep || []).filter(function (s) { return showmanMatch(f.years[op.y], s.showman); });
@@ -225,16 +261,13 @@
         var patch = {}, bad = false;
         Object.keys(op.patch || {}).forEach(function (fl) { if (LOCKED_FIELDS[fl] || conf.perms[fieldTab(fl)] !== "edit") bad = true; else patch[fl] = op.patch[fl]; });
         op.patch = patch;
-        res = bad && !Object.keys(patch).length ? { ok: false, msg: "no permission" } : applyOp(d, op);
+        if (bad && !Object.keys(patch).length) res = { ok: false, msg: "no permission" }; else ok = true;
       } else if (!canEdit(conf.perms, op.k)) res = { ok: false, msg: "no permission" };
-      else res = applyOp(d, op);
-      if (res.ok) {
-        pushKey(key, d);
-        try { window.dispatchEvent(new Event("gsc-reload-season")); } catch (e) {}
-      }
+      else ok = true;
     }
-    addLog({ id: op.id, ts: Date.now(), code: code, label: label, y: op.y, k: op.k, a: op.a, sid: op.sid, sheep: sheepName,
-      text: summary(op, sheepName), seen: false, rejected: res.ok ? null : res.msg, conflict: res.conflict || null });
+    if (ok) queueForApproval(code, label, op, sheepName);
+    else addLog({ id: op.id, ts: Date.now(), code: code, label: label, y: op.y, k: op.k, a: op.a, sid: op.sid, sheep: sheepName,
+      text: summary(op, sheepName), seen: false, rejected: res.msg, conflict: null });
     try { await FB.deleteDoc(ref); } catch (e) { console.error("[GSC Showman] inbox delete failed:", e); }
     schedulePublish();
   }
@@ -242,18 +275,46 @@
     if (SM || owner) return;
     owner = { db: db };
     var FB = window.__fb;
-    publishAll().then(function () {
-      FB.onSnapshot(FB.collectionGroup(db, "inbox"), function (snap) {
-        snap.docChanges().forEach(function (ch) { if (ch.type === "added") handleInbox(ch.doc); });
-      }, function (err) { console.error("[GSC Showman] inbox listener:", err && err.code, err); });
-    });
+    // v65: no live listener — showman entries are pulled in only when you open Settings or tap Check now
+    publishAll();
   };
   window.__gscSMOwnerTouch = function (key) {
     if (!owner) return;
     if (key === "*" || /^sheepwrld:(showbarn:|showman$|healthproducts$|years$)/.test(key)) schedulePublish();
   };
   // UI helpers for Settings > Showman Codes
+  function decide(ids, approve) {
+    var pend = pendList(), want = {}, any = false;
+    ids.forEach(function (id) { want[id] = 1; });
+    pend.filter(function (x) { return want[x.id]; }).sort(function (a, b) { return (a.op.ts || a.ts) - (b.op.ts || b.ts); }).forEach(function (x) {
+      var res = approve ? applyApproved(x) : { ok: false, msg: "denied" };
+      addLog({ id: x.id, ts: Date.now(), code: x.code, label: x.label, y: x.y, k: x.op.k, a: x.op.a, sid: x.sid, sheep: x.sheep, text: x.text,
+        seen: !(res && res.conflict), approved: approve && res.ok, denied: !approve, rejected: res.ok ? null : (approve ? res.msg : "denied"), conflict: res.conflict || null });
+      any = any || (approve && res.ok);
+    });
+    pushKey("sheepwrld:showmanpending", pendList().filter(function (x) { return !want[x.id]; }));
+    if (any) { try { window.dispatchEvent(new Event("gsc-reload-season")); } catch (e) {} }
+    schedulePublish();
+  }
+  var checking = null;
+  function checkInbox() {
+    if (!owner) return Promise.resolve({ ok: false, msg: "Not connected yet" });
+    if (checking) return checking;
+    var FB = window.__fb;
+    checking = (owner.ready || (owner.ready = publishAll())).then(function () {
+      return FB.getDocs(FB.collectionGroup(owner.db, "inbox"));
+    }).then(async function (snap) {
+      var docs = []; snap.forEach(function (x) { docs.push(x); });
+      for (var i = 0; i < docs.length; i++) await handleInbox(docs[i]);
+      lsSet("__smchecked", Date.now()); if (window.gxExtSet) window.gxExtSet("gx:smchecked", Date.now());
+      return { ok: true, n: docs.length };
+    }).catch(function (e) { console.error("[GSC Showman] check failed:", e && e.code, e); return { ok: false, msg: navigator.onLine === false ? "No signal" : "Couldn't check" }; })
+      .then(function (r) { checking = null; return r; });
+    return checking;
+  }
   window.gscSM = {
+    check: checkInbox, lastChecked: function () { return lsGet("__smchecked") || 0; }, ready: function () { return !!owner; },
+    approve: function (ids) { decide(ids, true); }, deny: function (ids) { decide(ids, false); },
     scan: scan, norm: norm, codeSheep: codeSheep, publish: schedulePublish,
     resolve: function (logId, keep) {
       var log = lsGet("sheepwrld:showmanlog") || [], l = log.filter(function (x) { return x.id === logId; })[0];
@@ -280,6 +341,33 @@
     var d = clone(base), r = root();
     pending().forEach(function (op) { if (op.y === y) applyOp(d, Object.assign({}, op, { by: SM.by, byName: r.label })); });
     return d;
+  }
+  var SEND_EVERY = 15 * 60 * 1000, IDLE_PAUSE = (+localStorage.getItem("gsc:__smIdleMs")) || 30 * 60 * 1000, smNextSend = 0, smPaused = false;
+  function smNotify() { if (window.gxExtSet) window.gxExtSet("gx:smtick", Date.now()); smStatus(); }
+  function sendOutbox() {
+    if (!SM || !smDb) return 0;
+    var FB = window.__fb, pend = pending(), n = 0;
+    pend.forEach(function (op) {
+      if (op.sent) return;
+      op.sent = Date.now(); n++;
+      var o = Object.assign({}, op); delete o.sent;
+      FB.setDoc(FB.doc(smDb, "gsc_sm", SM.h, "inbox", op.id), { op: JSON.stringify(o), ts: op.ts, by: SM.by })
+        .catch(function (e) { console.error("[GSC Showman] send failed:", e && e.code, e); });
+    });
+    lsSet("__smpend", pend); smNextSend = Date.now() + SEND_EVERY; smNotify();
+    return n;
+  }
+  function smStatus() {
+    if (!SM) return;
+    var p = pending(), un = p.filter(function (o) { return !o.sent; }).length, wait = p.length - un, el = document.getElementById("gsc-sm-status");
+    var txt = [smPaused ? "Paused \u2014 tap to resume" : "", un ? un + " waiting to send" : "", wait ? wait + " waiting for approval" : ""].filter(Boolean).join(" \u00b7 ");
+    if (!txt) { if (el) el.remove(); return; }
+    if (!el) {
+      el = document.createElement("div"); el.id = "gsc-sm-status";
+      el.style.cssText = "position:fixed;bottom:10px;left:10px;z-index:9998;font:600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:4px 9px;border-radius:999px;background:#8a6d00;color:#fff;pointer-events:none;";
+      document.body.appendChild(el);
+    }
+    el.textContent = txt;
   }
   function rebuild(reload) {
     var r = root(), changed = false;
@@ -379,13 +467,8 @@
     var res = diffYear(base, next, SM.by, r.perms || {}, !!r.active);
     if (res.ops.length) {
       var pend = pending();
-      res.ops.forEach(function (op) {
-        op.id = rid(); op.y = y; op.ts = Date.now();
-        pend.push(op);
-        if (smDb) window.__fb.setDoc(window.__fb.doc(smDb, "gsc_sm", SM.h, "inbox", op.id), { op: JSON.stringify(op), ts: op.ts, by: SM.by })
-          .catch(function (e) { console.error("[GSC Showman] send failed:", e && e.code, e); });
-      });
-      lsSet("__smpend", pend);
+      res.ops.forEach(function (op) { op.id = rid(); op.y = y; op.ts = Date.now(); op.sent = 0; pend.push(op); });
+      lsSet("__smpend", pend); smNotify();
     }
     if (!res.bad.length && res.quiet) setTimeout(function () { rebuild(true); }, 50);
     if (res.bad.length) {
@@ -397,8 +480,27 @@
     if (!SM || smStarted) return;
     smStarted = true; smDb = db;
     var FB = window.__fb;
-    // resend anything still waiting (Firestore also keeps its own offline queue)
-    pending().forEach(function (op) { FB.setDoc(FB.doc(db, "gsc_sm", SM.h, "inbox", op.id), { op: JSON.stringify(op), ts: op.ts, by: SM.by }).catch(function () {}); });
+    // entries are held on the phone and sent every 15 minutes (or with Send now)
+    smNextSend = Date.now() + SEND_EVERY;
+    setInterval(function () { if (!smPaused) sendOutbox(); }, SEND_EVERY);
+    // v65: after 30 minutes without a tap, stop syncing until they touch the app again
+    var lastTouch = Date.now();
+    function touch() {
+      lastTouch = Date.now();
+      if (smPaused) {
+        smPaused = false;
+        FB.enableNetwork(db).catch(function () {}).then(function () { sendOutbox(); smNotify(); });
+      }
+    }
+    ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, touch, true); });
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") touch(); });
+    setInterval(function () {
+      if (!smPaused && Date.now() - lastTouch > IDLE_PAUSE) {
+        smPaused = true; FB.disableNetwork(db).catch(function () {}); smNotify();
+        if (window.__gscPill) window.__gscPill("offline");
+      }
+    }, Math.min(60 * 1000, IDLE_PAUSE / 2));
+    smNotify();
     FB.onSnapshot(FB.doc(db, "gsc_sm", SM.h), function (snap) {
       var r = root();
       if (!snap.exists()) r.active = false;
@@ -410,7 +512,7 @@
         lsSet("__smpend", pending().filter(function (op) { return !done[op.id] && op.ts > week; }));
       }
       lsSet("__smroot", r);
-      rebuild(true); smBanner();
+      rebuild(true); smBanner(); smStatus();
       if (window.__gscPill) window.__gscPill(navigator.onLine === false ? "offline" : "synced");
       if (window.gxExtSet) window.gxExtSet("gx:smroot", r);
     }, function (err) { console.error("[GSC Showman] code listener:", err && err.code, err); });
@@ -455,5 +557,13 @@
     var go = function () { location.reload(); };
     try { window.__fb.signOut(window.__fb.getAuth()).then(go, go); } catch (e) { go(); }
   };
-  window.gscSMInfo = function () { return SM ? { root: root(), pending: pending().length } : null; };
+  window.gscSMInfo = function () {
+    if (!SM) return null;
+    var p = pending();
+    return { root: root(), pending: p.length, unsent: p.filter(function (o) { return !o.sent; }).length,
+      waiting: p.filter(function (o) { return o.sent; }).map(function (o) { return { id: o.id, y: o.y, text: summary(o) }; }),
+      queued: p.filter(function (o) { return !o.sent; }).map(function (o) { return { id: o.id, y: o.y, text: summary(o) }; }),
+      nextSend: smNextSend, paused: smPaused };
+  };
+  window.gscSMSendNow = function () { return sendOutbox(); };
 })();

@@ -163,8 +163,78 @@
     if (overlayEl) overlayEl.style.display = "flex";
   }
 
+  // v63: name what changed, and quietly reload right after opening instead of nagging.
+  var bootAt = Date.now(), userBusy = false, changedNames = {};
+  ["pointerdown", "keydown"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      var t = e.target;
+      if (t && t.closest && (t.closest("#gsc-cover") || t.closest("#gsc-sync-overlay") || t.closest("#gsc-sync-banner"))) return;
+      userBusy = true;
+    }, true);
+  });
+  function nameForKey(k) {
+    var m;
+    if ((m = /^sheepwrld:showbarn:(.+)$/.exec(k))) return "Show Lambs " + m[1];
+    if (k === "sheepwrld:herd" || k === "sheepwrld:herdhealth") return "Herd View";
+    if (/^sheepwrld:(of:|otherfarms)/.test(k)) return "Other Farms";
+    if (/^sheepwrld:showman/.test(k)) return "Showman entries";
+    if (k === "sheepwrld:years") return "year list";
+    if (/^sheepwrld:seeded:/.test(k)) return null;
+    return "settings";
+  }
+  var lastTyped = 0, pendingRec = {};
+  ["input", "keydown"].forEach(function (ev) { document.addEventListener(ev, function (e) { var t = e.target; if (t && t.closest && t.closest("#gsc-sync-overlay")) return; lastTyped = Date.now(); }, true); });
+  // v65: someone is mid-edit if a form/box is open, a field has focus, or they typed in the last 30 seconds
+  function isEditing() {
+    var a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !a.closest("#gsc-sync-overlay")) return true;
+    if (Date.now() - lastTyped < 30000) return true;
+    if (document.querySelector('div[style*="z-index: 9990"]')) return true;
+    var btns = document.querySelectorAll("#root button");
+    for (var i = 0; i < btns.length; i++) { var t = (btns[i].textContent || "").trim(); if ((t === "Cancel" || /^Save( |$)/.test(t)) && btns[i].offsetParent) return true; }
+    return false;
+  }
+  function isRecordKey(k) { return /^sheepwrld:(showbarn:|herd$|of:|years$)/.test(k); }
+  function extSet(k) {
+    if (!window.gxExtSet) return;
+    try { var v = localStorage.getItem(LOCAL_PREFIX + k); window.gxExtSet(k, v == null ? undefined : JSON.parse(v)); } catch (e) {}
+  }
+  // put changed records on screen without a page reload
+  function liveApply(keys) {
+    var full = false, season = false, herd = false;
+    keys.forEach(function (k) {
+      if (/^sheepwrld:of:/.test(k)) extSet(k);
+      else if (/^sheepwrld:showbarn:/.test(k)) season = true;
+      else if (k === "sheepwrld:herd") herd = true;
+      else full = true;
+    });
+    if (full) { window.location.reload(); return; }
+    try { if (season) window.dispatchEvent(new Event("gsc-reload-season")); if (herd) window.dispatchEvent(new Event("gsc-reload-herd")); } catch (e) {}
+  }
+  function applyRemote(keys) {
+    var rec = [];
+    keys.forEach(function (k) { extSet(k); if (isRecordKey(k)) rec.push(k); }); // everything else updates quietly
+    if (!rec.length) return;
+    if (quietReloadOk()) { try { sessionStorage.setItem("gsc:autoReload", String(Date.now())); } catch (e) {} window.location.reload(); return; }
+    if (isEditing()) { rec.forEach(function (k) { pendingRec[k] = 1; var nm = nameForKey(k); if (nm) changedNames[nm] = 1; }); showUpdateBanner(); return; }
+    liveApply(rec);
+  }
+  // once they finish editing, catch up on whatever came in meanwhile
+  setInterval(function () {
+    var ks = Object.keys(pendingRec);
+    if (!ks.length || isEditing()) return;
+    pendingRec = {}; changedNames = {};
+    var b = document.getElementById("gsc-sync-banner"); if (b) b.remove(); bannerShown = false;
+    liveApply(ks);
+  }, 5000);
+  function bannerText() { var n = Object.keys(changedNames); return "New data synced from another device" + (n.length ? ": " + n.join(", ") : "") + "."; }
+  function quietReloadOk() {
+    if (userBusy || Date.now() - bootAt > 15000) return false;
+    var last = 0; try { last = +sessionStorage.getItem("gsc:autoReload") || 0; } catch (e) {}
+    return Date.now() - last > 60000;
+  }
   function showUpdateBanner() {
-    if (bannerShown) return;
+    if (bannerShown) { var s = document.querySelector("#gsc-sync-banner span"); if (s) s.textContent = bannerText(); return; }
     bannerShown = true;
     var banner = document.createElement("div");
     banner.id = "gsc-sync-banner";
@@ -174,10 +244,11 @@
       "font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;" +
       "box-shadow:0 2px 6px rgba(0,0,0,.3);";
     banner.innerHTML =
-      "<span>New data synced from another device.</span>" +
+      "<span></span>" +
       '<button id="gsc-sync-refresh-btn" style="background:#fff;color:#2f5233;border:none;' +
       'border-radius:6px;padding:6px 12px;font-weight:600;cursor:pointer;font-size:12px;">Refresh</button>';
     document.body.appendChild(banner);
+    banner.querySelector("span").textContent = bannerText();
     banner.querySelector("#gsc-sync-refresh-btn").addEventListener("click", function () {
       window.location.reload();
     });
@@ -249,7 +320,7 @@
     FB.onSnapshot(
       colRef,
       function (snap) {
-        var sawChange = false;
+        var sawChange = false, changedKeys = [];
         var remoteKeysSeen = {};
         snap.docChanges().forEach(function (change) {
           var key = change.doc.id;
@@ -262,7 +333,7 @@
           if (remoteTs <= localTs) return; // we already have this (or our own echoed write)
 
           if (data.deleted) {
-            localStorage.removeItem(LOCAL_PREFIX + key);
+            if (localStorage.getItem(LOCAL_PREFIX + key) != null) { localStorage.removeItem(LOCAL_PREFIX + key); changedKeys.push(key); sawChange = true; }
           } else if (typeof data.value === "string") {
             var existing = localStorage.getItem(LOCAL_PREFIX + key);
             if (existing === data.value) {
@@ -270,7 +341,7 @@
               return;
             }
             localStorage.setItem(LOCAL_PREFIX + key, data.value);
-            sawChange = true;
+            changedKeys.push(key); sawChange = true;
           }
           localStorage.setItem(META_PREFIX + key, String(remoteTs));
         });
@@ -280,7 +351,7 @@
           backfillMissingLocalKeys(remoteKeysSeen);
         }
 
-        if (sawChange) showUpdateBanner();
+        if (sawChange) applyRemote(changedKeys);
         if (sawChange && window.__gscSMOwnerTouch) window.__gscSMOwnerTouch("*");
         setPillState(navigator.onLine === false ? "offline" : "synced");
       },
