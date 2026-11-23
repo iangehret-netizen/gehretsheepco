@@ -224,7 +224,8 @@
     dob: ["date of birth", "dob", "birth date", "birthdate", "born", "birth year", "year born"],
     sex: ["sex", "gender"],
     dam: ["dam", "dam tag", "dam id", "dam #", "dam no", "dam number"],
-    scrapie: ["scrapie", "scrapie tag", "scrapie #", "scrapie id", "usda tag", "usda id"]
+    scrapie: ["scrapie", "scrapie tag", "scrapie #", "scrapie id", "usda tag", "usda id"],
+    nickname: ["nickname", "nick name", "nick"]
   };
   var EWEMAP = {};
   Object.keys(EWE_FIELD).forEach(function (f) { EWE_FIELD[f].forEach(function (k) { EWEMAP[nk(k)] = f; }); });
@@ -237,6 +238,8 @@
         var cells = cellsOf(L);
         if (!cols) {
           var fs = cells.map(function (c) { return eweField(c.str); });
+          // v69: two date columns (e.g. "Birthdate" and "Born" lambs-born count) -> keep the real birth date
+          if (fs.filter(function (f) { return f === "dob"; }).length > 1) { var best = -1; cells.forEach(function (c, i) { if (fs[i] === "dob" && best < 0 && /^(birthdate|birth date|date of birth|dob)$/.test(nk(c.str))) best = i; }); if (best >= 0) fs = fs.map(function (f, i) { return f === "dob" && i !== best ? null : f; }); }
           if (fs.indexOf("tag") >= 0 && fs.filter(Boolean).length >= 2 && !cells.some(function (c) { return fieldFor(c.str) === "lot"; })) {
             cols = cells.map(function (c, i) { var w = c.str.length * 5; return { cx: c.x + w / 2, f: fs[i], key: c.str }; });
             L.items.forEach(function (it, i) { if (cols[i]) cols[i].cx = it.x + (it.w || 0) / 2; });
@@ -254,10 +257,14 @@
         });
         var ti = -1; cols.forEach(function (c, i) { if (c.f === "tag" && ti < 0) ti = i; });
         var tg = clean(row[ti] || "");
+        // v69: tag column left blank but the Name holds the tag number (e.g. an app roster printout)
+        var ni = -1; cols.forEach(function (c, i) { if (c.f === "name" && ni < 0) ni = i; });
+        var nmv = ni >= 0 ? clean(row[ni] || "") : "", usedName = false;
+        if (!tg && nmv && /\d/.test(nmv) && nmv.length <= 14 && !/\s/.test(nmv)) { tg = nmv; usedName = true; }
         if (tg && /\d/.test(tg) && tg.length <= 14) {
-          var e = { tag: tg, name: "", breed: "", sire: "", damSire: "", dob: "", notes: "", sex: "", dam: "", scrapie: "" }, extra = [];
+          var e = { tag: tg, name: "", nickname: "", breed: "", sire: "", damSire: "", dob: "", notes: "", sex: "", dam: "", scrapie: "" }, extra = [];
           cols.forEach(function (c, i) {
-            if (i === ti || row[i] == null) return;
+            if (i === ti || row[i] == null || (usedName && i === ni)) return;
             var v = clean(row[i]);
             if (c.f === "notes") e.notes = clean(e.notes + " " + v);
             else if (c.f === "dob") e.dob = /^\d{4}$/.test(v) ? v : normDate(v);
@@ -277,9 +284,11 @@
       var k = nk(e.tag), m = byTag[k];
       if (!m) { m = byTag[k] = Object.assign({ twice: 0 }, e); merged.push(m); return; }
       m.twice++;
-      ["name", "breed", "sire", "damSire", "dob", "sex", "dam", "scrapie"].forEach(function (f) { if (!m[f] && e[f]) m[f] = e[f]; });
+      ["name", "nickname", "breed", "sire", "damSire", "dob", "sex", "dam", "scrapie"].forEach(function (f) { if (!m[f] && e[f]) m[f] = e[f]; });
       if (e.notes && m.notes.indexOf(e.notes) < 0) m.notes = clean(m.notes + " \u00b7 " + e.notes);
     });
+    // v69: a sex word that ran into the Name / Nickname column ("Black Rocks Mom Ewe")
+    merged.forEach(function (e) { ["nickname", "name"].forEach(function (f) { var m = /^(.*\S)\s+(ewe|ram|wether|female|male)$/i.exec(e[f] || ""); if (m && !e.sex) { e[f] = m[1]; e.sex = m[2]; } }); });
     merged.forEach(function (e) { if (e.sex) e.sex = normSex(e.sex); });
     var breed = clean(title).replace(/\b(ewes?|flock|list|females?|dams?)\b/ig, "").trim().replace(/ies$/i, "y").replace(/([^s])s$/i, "$1");
     return { ewes: merged, breed: breed, title: title };

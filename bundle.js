@@ -1431,14 +1431,14 @@ function GxOfImport(p){
   function dupOf(r){if(!sale)return null;var lots=sale.lots||[];return lots.filter(function(l){return ofImpSame(l.lot,r.lot)})[0]||lots.filter(function(l){return ofImpSame(l.tag,r.tag)})[0]||null}
   async function pick(e){var f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;setStep("busy");setMsg("Opening the PDF…");
     try{await gxLoadSalePdf();var r=await window.gscReadSalePdf(f,function(m){setMsg(m)});setRes(r);
-      if(p.mode==="roster"){var src=r.lots.length>((r.eweList&&r.eweList.ewes.length)||0)?"lots":"list",rr=[];
+      if(p.mode==="roster"){var hasL_=(r.eweList&&r.eweList.ewes.length)||0,src=r.lots.length>hasL_&&(!hasL_||r.lots.some(function(l){return l.tag}))?"lots":"list",rr=[];
         if(src==="lots")rr=r.lots.map(function(l){var ex=[];r.extraKeys.forEach(function(k){var v=l.extra&&l.extra[k.key];if(v&&k.use==="comments")ex.push(k.key+": "+v)});
           return{tag:l.tag,scrapie:"",sex:l.sex,breed:l.breed,sire:l.sire,dam:l.damTag,notes:[l.lot?"Catalog Lot "+l.lot:"",l.comments].concat(ex).filter(Boolean).join("\n")}});
-        else rr=r.eweList.ewes.map(function(e){return{tag:e.tag,scrapie:e.scrapie,sex:e.sex,breed:e.breed,sire:e.sire,dam:e.dam,notes:[e.name?"Name: "+e.name:"",e.notes,e.damSire?"Dam Sire: "+e.damSire:"",e.dob?"DOB: "+e.dob:""].filter(Boolean).join(" \u00b7 ")}});
+        else rr=r.eweList.ewes.map(function(e){return{tag:e.tag,nickname:e.nickname||"",scrapie:e.scrapie,sex:e.sex,breed:e.breed,sire:e.sire,dam:e.dam,notes:[e.name?"Name: "+e.name:"",e.notes,e.damSire?"Dam Sire: "+e.damSire:"",e.dob?"DOB: "+e.dob:""].filter(Boolean).join(" \u00b7 ")}});
         if(!rr.length){setStep("none");return}
         setBreedAll(src==="list"&&r.eweList.breed||"");setRows(rr.map(function(o){o._id=Nr();o._dup=ofRosterHas(d,p.year,o);o._on=!o._dup;return o}));setStep("rosterlist");return}
-      if(!r.lots.length&&!(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length)){setStep("none");return}
-      if(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length&&!r.lots.length){setBreedAll(r.eweList.breed||"");setRows(r.eweList.ewes.map(function(e){var o=Object.assign({},e,{_id:Nr()});o._dup=!!ofEweFor(d,e.tag);o._on=!o._dup;return o}));setStep("ewelist");return}
+      var listWins_=r.eweList&&r.eweList.ewes.length&&(!r.lots.length||!r.lots.some(function(l){return l.damTag||l.tag}));if(!r.lots.length&&!(p.mode==="ewes"&&r.eweList&&r.eweList.ewes.length)){setStep("none");return}
+      if(p.mode==="ewes"&&listWins_){setBreedAll(r.eweList.breed||"");setRows(r.eweList.ewes.map(function(e){var o=Object.assign({},e,{_id:Nr()});o._dup=!!ofEweFor(d,e.tag);o._on=!o._dup;return o}));setStep("ewelist");return}
       if(p.mode==="ewes"){setDams(ofImpDams(d,r.lots));setStep("dams");return}
       setKeys(r.extraKeys.map(function(k){return Object.assign({},k)}));
       setRows(r.lots.map(function(l){var o=Object.assign({},l,{_id:Nr()});o._dup=!!dupOf(o);o._on=!o._dup;return o}));setStep("lots")}
@@ -1454,10 +1454,10 @@ function GxOfImport(p){
     setAdded(built.length);var dm=ofImpDams(d,built);setDams(dm);setStep(dm.some(function(x){return!x.exists})?"dams":"done")}
   function importRosterList(){var pk=rows.filter(function(r){return r._on&&!r._dup&&String(r.tag||r.scrapie||"").trim()});if(!pk.length){alert("Nothing checked to import.");return}
     p.save(function(x){if(x.years.indexOf(p.year)<0)x.years.push(p.year);pk.forEach(function(r){if(ofRosterHas(x,p.year,r))return;
-      x.roster.push({id:Nr(),year:p.year,farmTag:String(r.tag||"").trim(),scrapieTag:String(r.scrapie||"").trim(),sex:r.sex||"",breed:r.breed||breedAll||"",sire:r.sire||"",dam:r.dam||"",showmen:[],notes:r.notes||""})});return x});
+      x.roster.push({id:Nr(),year:p.year,farmTag:String(r.tag||"").trim(),nickname:r.nickname||"",scrapieTag:String(r.scrapie||"").trim(),sex:r.sex||"",breed:r.breed||breedAll||"",sire:r.sire||"",dam:r.dam||"",showmen:[],notes:r.notes||""})});return x});
     setAdded(pk.length);setStep("done")}
   function importEweList(){var pk=rows.filter(function(r){return r._on&&!r._dup&&String(r.tag||"").trim()});if(!pk.length){alert("Nothing checked to import.");return}
-    p.save(function(x){pk.forEach(function(r){if(ofEweFor(x,r.tag))return;x.ewes.push({id:Nr(),tag:String(r.tag).trim(),name:r.name||"",breed:r.breed||breedAll||"",sire:r.sire||"",damSire:r.damSire||"",dob:/^\d{4}-\d{2}-\d{2}$/.test(r.dob||"")?r.dob:"",notes:[r.notes,r.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(r.dob)?"Born: "+r.dob:"",r.dam?"Dam: "+r.dam:"",r.scrapie?"Scrapie: "+r.scrapie:""].filter(Boolean).join(" \u00b7 "),babies:[]})});return x});
+    p.save(function(x){pk.forEach(function(r){if(ofEweFor(x,r.tag))return;x.ewes.push({id:Nr(),tag:String(r.tag).trim(),name:r.name||"",nickname:r.nickname||"",breed:r.breed||breedAll||"",sire:r.sire||"",damSire:r.damSire||"",dob:/^\d{4}-\d{2}-\d{2}$/.test(r.dob||"")?r.dob:"",notes:[r.notes,r.dob&&!/^\d{4}-\d{2}-\d{2}$/.test(r.dob)?"Born: "+r.dob:"",r.dam?"Dam: "+r.dam:"",r.scrapie?"Scrapie: "+r.scrapie:""].filter(Boolean).join(" \u00b7 "),babies:[]})});return x});
     setAdded(pk.length);setStep("done")}
   function importEwes(){var add=dams.filter(function(x){return x.on&&!x.exists});
     if(add.length)p.save(function(x){add.forEach(function(a){if(ofEweFor(x,a.tag))return;x.ewes.push({id:Nr(),tag:a.tag,name:"",sire:a.sire,damSire:"",dob:"",notes:p.mode==="ewes"?"Added from a sale catalog PDF":"Added from "+(sale&&sale.name||"a sale catalog"),babies:[]})});return x});
@@ -1511,7 +1511,7 @@ function GxOfImport(p){
       gxE("div",{className:"space-y-2"},rows.map(function(r,i){return gxE("div",{key:r._id,className:"p-2",style:{background:r._dup?"#F1EFEA":"#FFFFFF",border:"1px solid "+(r._on?Qe:"#DDD8CC"),borderRadius:"10px",opacity:r._on||r._dup?1:.6}},
         gxE("label",{className:"flex items-center gap-2 mb-1"},gxE("input",{type:"checkbox",checked:!!r._on,disabled:r._dup,onChange:function(){setRow(i,"_on",!r._on)},style:{width:18,height:18,accentColor:Qe}}),
           gxE("span",{className:"text-sm",style:{color:Ge,fontWeight:700}},"Tag "+(r.tag||"?")+(r.sire?" \u00b7 "+r.sire:"")),r._dup?gxE("span",{className:"text-[11px]",style:{color:"#8C4A4A"}},"Already in Ewes \u2014 skipped"):r.twice?gxE("span",{className:"text-[11px] text-neutral-500"},"listed "+(r.twice+1)+"\u00d7 in PDF"):null),
-        r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"tag","Tag"),fld(i,r,"name","Name"),
+        r._dup?null:gxE("div",{className:"grid grid-cols-2 md:grid-cols-4 gap-2"},fld(i,r,"tag","Tag"),fld(i,r,"name","Name"),fld(i,r,"nickname","Nickname"),
           gxE("label",{key:"br",className:"block"},gxE("span",{className:"text-[10px] uppercase tracking-wider text-neutral-500"},"Breed"),gxE("input",Object.assign({},inp,{value:r.breed||"",placeholder:breedAll||"",list:"ofimp-breeds",onChange:function(e){setRow(i,"breed",e.target.value)}}))),
           fld(i,r,"sire","Sire"),fld(i,r,"damSire","Dam Sire"),fld(i,r,"dob","DOB"),gxE("div",{className:"col-span-2 md:col-span-2"},fld(i,r,"notes","Notes","area"))))})),
       gxE("div",{className:"flex justify-end gap-2 mt-3"},gxE(tt,{variant:"outline",onClick:p.onClose},"Cancel"),gxE(tt,{onClick:importEweList,disabled:!ne},"Add "+ne+" Ewe"+(ne===1?"":"s"))))}
