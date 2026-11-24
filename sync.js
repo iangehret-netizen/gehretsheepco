@@ -176,6 +176,7 @@
     var m;
     if ((m = /^sheepwrld:showbarn:(.+)$/.exec(k))) return "Show Lambs " + m[1];
     if (k === "sheepwrld:herd" || k === "sheepwrld:herdhealth") return "Herd View";
+    if (k === "sheepwrld:of:gehret") return "Lamb Roster";
     if (/^sheepwrld:(of:|otherfarms)/.test(k)) return "Other Farms";
     if (/^sheepwrld:showman/.test(k)) return "Showman entries";
     if (k === "sheepwrld:years") return "year list";
